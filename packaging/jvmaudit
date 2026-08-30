@@ -1,0 +1,38 @@
+#!/bin/sh
+# JVMAudit launcher for the self-contained distribution.
+#
+# Runs the bundled runtime, so this works on a host with no Java on PATH at all - which is the
+# whole point of the self-contained archive. Nothing here reaches the network.
+
+set -eu
+
+# Resolve this script through any symlinks, so putting it on PATH via a symlink works.
+script="$0"
+while [ -L "$script" ]; do
+  link=$(ls -ld -- "$script" | sed 's/.*-> //')
+  case "$link" in
+    /*) script="$link" ;;
+    *) script="$(dirname -- "$script")/$link" ;;
+  esac
+done
+home=$(cd -- "$(dirname -- "$script")/.." && pwd)
+
+# java.exe as well as java: this script is also what runs under Git Bash and WSL on Windows, where
+# the bundled runtime's launcher carries the .exe suffix.
+java="$home/runtime/bin/java"
+if [ ! -x "$java" ] && [ -x "$home/runtime/bin/java.exe" ]; then
+  java="$home/runtime/bin/java.exe"
+fi
+jar="$home/lib/jvmaudit.jar"
+
+if [ ! -x "$java" ]; then
+  echo "jvmaudit: the bundled runtime is missing from $home/runtime." >&2
+  echo "          Re-extract the archive, keeping its directory layout intact." >&2
+  exit 2
+fi
+if [ ! -f "$jar" ]; then
+  echo "jvmaudit: $jar is missing. Re-extract the archive." >&2
+  exit 2
+fi
+
+exec "$java" -jar "$jar" "$@"

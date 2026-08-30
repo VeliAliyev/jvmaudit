@@ -1,0 +1,139 @@
+name: Release
+
+# Builds every artifact on its own operating system, runs each one as a user would, and only then
+# attaches it to a GitHub Release with SHA-256 sums.
+#
+# A note that matters for a tool about Java licensing: the bundled runtime is produced by jlink from
+# the JDK this workflow sets up, which makes the shipped runtime a derivative of it. That JDK is
+# Eclipse Temurin, GPLv2 with the Classpath Exception, which permits redistribution. It must never
+# be Oracle JDK - shipping an Oracle-licensed runtime inside a tool that warns people about
+# Oracle-licensed runtimes would be indefensible, and the OTN licence forbids it anyway.
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version label for a dry run (nothing is published)'
+        required: false
+        default: '0.0.0-dev'
+
+permissions:
+  contents: read
+
+jobs:
+  distribution:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,  label: linux-x64,     osname: linux,   arch: x64 }
+          - { os: macos-latest,   label: macos-aarch64, osname: macos,   arch: aarch64 }
+          - { os: windows-latest, label: windows-x64,   osname: windows, arch: x64 }
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 21 (Temurin - GPLv2+CPE, redistributable)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Work out the version
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version="${{ inputs.version }}"
+          fi
+          echo "VERSION=${version}" >> "$GITHUB_ENV"
+          echo "Building version ${version}"
+
+      - name: Stamp the version into the build
+        shell: bash
+        run: mvn -B -ntp versions:set -DnewVersion="${VERSION}" -DgenerateBackupPoms=false
+
+      - name: Build and test
+        shell: bash
+        run: mvn -B -ntp verify
+
+      - name: Build the self-contained distribution
+        shell: bash
+        run: bash .github/scripts/build-runtime.sh "${VERSION}" "${{ matrix.osname }}" "${{ matrix.arch }}"
+
+      - name: Smoke-test the self-contained distribution
+        shell: bash
+        run: bash .github/scripts/smoke-test.sh "dist/${DIST_NAME}/bin/jvmaudit"
+
+      - name: Smoke-test the fat jar
+        shell: bash
+        run: bash .github/scripts/smoke-test.sh java -jar cli/target/jvmaudit.jar
+
+      - name: Upload the distribution archive
+        uses: actions/upload-artifact@v5
+        with:
+          name: dist-${{ matrix.label }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          if-no-files-found: error
+
+      - name: Upload the fat jar
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v5
+        with:
+          name: jvmaudit-jar
+          path: cli/target/jvmaudit.jar
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: distribution
+    if: github.ref_type == 'tag'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Collect the artifacts and hash them
+        shell: bash
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.jar' \) \
+            -exec cp {} release/ \;
+          cd release
+          sha256sum ./* > SHA256SUMS.txt
+          echo "Release contents:"
+          cat SHA256SUMS.txt
+
+      - name: Write the release notes
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          sed "s/__VERSION__/${version}/g" .github/release-notes.md > release-notes.txt
+          cat release-notes.txt
+
+      - name: Publish the GitHub Release
+        # The GitHub CLI rather than a third-party action: fewer moving parts in the one workflow
+        # that has permission to write to this repository.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          prerelease=""
+          case "${version}" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "${GITHUB_REF_NAME}" release/* \
+            --title "JVMAudit ${version}" \
+            --notes-file release-notes.txt \
+            ${prerelease}

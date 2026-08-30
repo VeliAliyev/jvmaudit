@@ -30,6 +30,10 @@ jobs:
       - name: Build and test
         run: mvn -B -ntp verify
 
+      - name: Smoke-test the fat jar as a user would run it
+        shell: bash
+        run: bash .github/scripts/smoke-test.sh java -jar cli/target/jvmaudit.jar
+
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v5

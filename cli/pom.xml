@@ -31,4 +31,83 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <!-- One file the user can run anywhere a JVM already exists, which is by definition
+                   everywhere this tool is useful. Named without a version so the documented command
+                   stays "java -jar jvmaudit.jar" across releases. -->
+              <finalName>jvmaudit</finalName>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <transformers>
+                <transformer
+                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>dev.jvmaudit.cli.Main</mainClass>
+                  <manifestEntries>
+                    <Implementation-Title>JVMAudit</Implementation-Title>
+                    <Implementation-Version>${project.version}</Implementation-Version>
+                  </manifestEntries>
+                </transformer>
+                <transformer
+                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <!-- Every dependency here is Apache-2.0, which obliges us to carry its NOTICE.
+                     Without this the shaded jar keeps whichever NOTICE happened to be copied last
+                     and silently drops the rest. A tool about licence compliance has no business
+                     getting its own attribution wrong. ApacheLicenseResourceTransformer is
+                     deliberately NOT used: it deletes META-INF/LICENSE outright, which would leave
+                     the jar carrying no licence text at all. -->
+                <transformer
+                    implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+                  <projectName>JVMAudit</projectName>
+                  <addHeader>false</addHeader>
+                </transformer>
+              </transformers>
+              <filters>
+                <!-- All three Jackson artifacts ship the identical Apache-2.0 text at
+                     META-INF/LICENSE. Keep jackson-databind's copy and drop the duplicates, so the
+                     jar carries the licence exactly once and the build stays warning-free. Their
+                     NOTICE files are merged by the transformer above, not dropped. -->
+                <filter>
+                  <artifact>com.fasterxml.jackson.core:jackson-annotations</artifact>
+                  <excludes>
+                    <exclude>META-INF/LICENSE</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>com.fasterxml.jackson.core:jackson-core</artifact>
+                  <excludes>
+                    <exclude>META-INF/LICENSE</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <!-- Dependency signatures do not survive shading and break startup if kept. -->
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>module-info.class</exclude>
+                    <!-- The multi-release copies, which the bare name above does not match. -->
+                    <exclude>META-INF/versions/*/module-info.class</exclude>
+                    <!-- The transformer writes a fresh manifest; the inputs are only noise. -->
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
