@@ -1,0 +1,36 @@
+name: Unrecognised Java distribution
+description: JVMAudit could not identify a JVM, or named it wrongly
+labels: ["vendor", "detection"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        JVMAudit reports `UNKNOWN` rather than guessing, so an unrecognised distribution is a gap
+        we want to close. This is usually a data-only fix in `rules/vendors.yaml`.
+  - type: input
+    id: distribution
+    attributes:
+      label: Which distribution is it?
+      placeholder: e.g. Red Hat build of OpenJDK 21, Tencent Kona 17
+    validations:
+      required: true
+  - type: textarea
+    id: release
+    attributes:
+      label: The release file
+      description: Contents of `<installation>/release`. Say so if the file does not exist.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: java -version
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Where can this build be downloaded?
+      description: So the strings can be confirmed against a real artifact before we mark them verified.

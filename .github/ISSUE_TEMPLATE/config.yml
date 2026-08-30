@@ -1,0 +1,7 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Is this a licensing question rather than a tool bug?
+    url: https://www.oracle.com/java/technologies/javase/jdk-faqs.html
+    about: >-
+      JVMAudit is an inventory tool, not legal advice. For what a licence permits, Oracle's own FAQ
+      is the primary source, and your contracts with Oracle override all of it.

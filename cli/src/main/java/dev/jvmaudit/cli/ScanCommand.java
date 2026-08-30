@@ -131,8 +131,14 @@ public final class ScanCommand implements Callable<Integer> {
               + " licence rules used, and a SHA-256 manifest of all of them.")
   Path evidence;
 
-  @Option(names = "--no-color", description = "Never colour the console output.")
-  boolean noColor;
+  @Option(
+      names = "--color",
+      negatable = true,
+      description =
+          "Force colour on or off. By default JVMAudit colours only when it is writing to a"
+              + " terminal, so redirected output and CI logs stay clean. --color is useful when"
+              + " piping into a pager that understands escapes.")
+  Boolean color;
 
   @CommandLine.Spec CommandLine.Model.CommandSpec spec;
 
@@ -211,10 +217,13 @@ public final class ScanCommand implements Callable<Integer> {
    * them.
    */
   private boolean useColour() {
-    if (noColor || out != null || format != Format.TABLE) {
+    if (format != Format.TABLE) {
       return false;
     }
-    if (System.getenv("NO_COLOR") != null) {
+    if (color != null) {
+      return color;
+    }
+    if (out != null || System.getenv("NO_COLOR") != null) {
       return false;
     }
     if ("dumb".equals(System.getenv("TERM"))) {
@@ -223,8 +232,16 @@ public final class ScanCommand implements Callable<Integer> {
     return System.console() != null;
   }
 
+  /**
+   * Status glyphs are suppressed on Windows consoles, which frequently cannot render them - unless
+   * the user asked for colour explicitly, in which case they have opted into decoration and know
+   * what their terminal can do.
+   */
   private boolean useGlyphs() {
-    return useColour() && !isWindowsConsole();
+    if (!useColour()) {
+      return false;
+    }
+    return color != null ? color : !isWindowsConsole();
   }
 
   private static boolean isWindowsConsole() {

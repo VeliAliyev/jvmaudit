@@ -1,0 +1,44 @@
+name: Wrong licence verdict
+description: JVMAudit reported the wrong licence for an installation
+labels: ["licence-rule", "needs-evidence"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A wrong licence verdict is the most serious kind of bug this project can have, in either
+        direction. Thank you for reporting it.
+
+        A verdict only changes against a primary source, so the last field matters most.
+  - type: textarea
+    id: scan
+    attributes:
+      label: What JVMAudit said
+      description: Output of `jvmaudit scan --paths <the installation>`
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: release
+    attributes:
+      label: The release file
+      description: Contents of `<installation>/release`. Paste it verbatim, or say if there is none.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: java -version
+      description: Output of `<installation>/bin/java -version`
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the correct answer is, and the Oracle document that says so
+      description: |
+        A link to Oracle's FAQ, licence text, support roadmap or release notes. Without a primary
+        source we cannot change a rule, however plausible the correction.
+    validations:
+      required: true

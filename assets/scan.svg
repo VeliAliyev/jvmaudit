@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1549" height="575" viewBox="0 0 1549 575" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
+<rect width="1549" height="575" rx="8" fill="#1c1f26"/>
+<rect width="1549" height="30" rx="8" fill="#282c34"/>
+<rect y="22" width="1549" height="8" fill="#282c34"/>
+<circle cx="18" cy="15" r="5.5" fill="#e06c75"/>
+<circle cx="36" cy="15" r="5.5" fill="#e5c07b"/>
+<circle cx="54" cy="15" r="5.5" fill="#98c379"/>
+<text x="72" y="19.5" fill="#8b92a0" font-size="11.5">jvmaudit scan</text>
+<text><tspan x="18.0" y="46.0" fill="#e5c07b" xml:space="preserve">? REVIEW            </tspan><tspan x="179.0" y="46.0" fill="#d7dae0" xml:space="preserve">  Oracle JDK / Oracle JRE              17.0.11      C:\Program Files\Java\jdk-17</tspan></text>
+<text><tspan x="18.0" y="65.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    Oracle JDK 17 releases up to and including 17.0.12 (September 2024) are under the No-Fee Terms</tspan></text>
+<text><tspan x="18.0" y="84.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    and Conditions licence and are free for all uses including production, but this line receives no</tspan></text>
+<text><tspan x="18.0" y="103.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    further free updates - 17.0.13 and later are OTN licensed.</tspan></text>
+<text><tspan x="18.0" y="122.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    source: https://www.oracle.com/java/technologies/javase/jdk-faqs.html</tspan></text>
+<text><tspan x="18.0" y="141.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    source: https://www.oracle.com/java/technologies/java-se-support-roadmap.html</tspan></text>
+<text><tspan x="18.0" y="160.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    source: https://www.oracle.com/downloads/licenses/no-fee-license.html</tspan></text>
+<text><tspan x="18.0" y="198.0" fill="#98c379" xml:space="preserve">? FREE               </tspan><tspan x="187.1" y="198.0" fill="#d7dae0" xml:space="preserve">  Amazon Corretto                      17.0.13      C:\Program Files\Amazon Corretto\jdk17.0.13_11</tspan></text>
+<text><tspan x="18.0" y="217.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    This is a non-Oracle OpenJDK distribution under an open source licence, so it carries no Oracle</tspan></text>
+<text><tspan x="18.0" y="236.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    licence cost.</tspan></text>
+<text><tspan x="18.0" y="255.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    source: https://openjdk.org/legal/gplv2+ce.html</tspan></text>
+<text><tspan x="18.0" y="274.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    source: https://aws.amazon.com/corretto/faqs/</tspan></text>
+<text><tspan x="18.0" y="312.0" fill="#98c379" xml:space="preserve">? FREE               </tspan><tspan x="187.1" y="312.0" fill="#d7dae0" xml:space="preserve">  Oracle OpenJDK build (jdk.java.net)  21.0.2       C:\Users\Veli\.jdks\openjdk-21.0.2</tspan></text>
+<text><tspan x="18.0" y="331.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    Oracle&#x27;s OpenJDK builds from jdk.java.net are open source under GPLv2 with the Classpath</tspan></text>
+<text><tspan x="18.0" y="350.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    Exception and carry no licence cost, even though the vendor string says Oracle.</tspan></text>
+<text><tspan x="18.0" y="369.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    source: https://www.oracle.com/java/technologies/javase/jdk-faqs.html</tspan></text>
+<text><tspan x="18.0" y="388.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">    source: https://openjdk.org/legal/gplv2+ce.html</tspan></text>
+<text><tspan x="18.0" y="445.0" fill="#d7dae0" font-weight="600" xml:space="preserve">3 JVMs found: 2 free, 1 review, 0 Oracle-paid-likely, 0 unknown.</tspan></text>
+<text><tspan x="18.0" y="483.0" fill="#e5c07b" xml:space="preserve">warning:</tspan><tspan x="82.4" y="483.0" fill="#d7dae0" xml:space="preserve"> Only 221 of 413 running processes exposed their command line to this user. Run JVMAudit as administrator (Windows) or root (Linux and macOS) for complete coverage of running JVMs.</tspan></text>
+<text><tspan x="18.0" y="521.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">JVMAudit is an inventory tool, not legal advice. License conclusions depend on your contracts with</tspan></text>
+<text><tspan x="18.0" y="540.0" fill="#d7dae0" opacity="0.72" xml:space="preserve">Oracle.</tspan></text>
+</svg>
