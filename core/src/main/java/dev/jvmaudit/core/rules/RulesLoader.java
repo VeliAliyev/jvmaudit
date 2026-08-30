@@ -144,19 +144,46 @@ public final class RulesLoader {
               Boolean.TRUE.equals(node.get("oracle")),
               citations(node.get("citations"), VENDORS_FILE, id),
               Confidence.parse(string(node, "matchConfidence")));
-      Map<String, Object> match = map(node.get("match"), VENDORS_FILE + " match for " + id);
-      entries.add(
-          new ProductCatalog.Entry(
-              product,
-              string(match, "implementor"),
-              string(match, "implementorVersion"),
-              string(match, "runtimeName"),
-              (Boolean) match.get("requiresJavaTm")));
+      entries.add(new ProductCatalog.Entry(product, conditions(node.get("match"), id)));
     }
     if (entries.isEmpty()) {
       throw new RuleDataException(VENDORS_FILE + " declares no products.");
     }
     return new ProductCatalog(catalogVersion, entries);
+  }
+
+  /**
+   * Parses a product's match conditions. A product may state several alternatives, because the
+   * evidence available differs: a readable release file gives a vendor string, while an
+   * installation identified by running it gives only the java -version banner.
+   */
+  private static List<ProductCatalog.Condition> conditions(Object node, String productId) {
+    if (node == null) {
+      throw new RuleDataException("Product '" + productId + "' states no match conditions.");
+    }
+    List<Object> raw = node instanceof List ? asList(node, "match of " + productId) : List.of(node);
+    List<ProductCatalog.Condition> conditions = new ArrayList<>(raw.size());
+    for (Object item : raw) {
+      Map<String, Object> entry = map(item, VENDORS_FILE + " match for " + productId);
+      ProductCatalog.Condition condition =
+          new ProductCatalog.Condition(
+              string(entry, "implementor"),
+              string(entry, "implementorVersion"),
+              string(entry, "runtimeName"),
+              (Boolean) entry.get("requiresJavaTm"));
+      if (condition.isEmpty()) {
+        throw new RuleDataException(
+            "Product '"
+                + productId
+                + "' has a match alternative with no conditions, which would"
+                + " recognise every installation on earth.");
+      }
+      conditions.add(condition);
+    }
+    if (conditions.isEmpty()) {
+      throw new RuleDataException("Product '" + productId + "' states no match conditions.");
+    }
+    return conditions;
   }
 
   private static List<Citation> citations(Object node, String file, String owner) {
@@ -261,7 +288,8 @@ public final class RulesLoader {
               ruleCitations,
               Confidence.parse(string(node, "confidence")),
               date(node.get("effectiveFrom"), "effectiveFrom of rule " + id),
-              date(node.get("effectiveTo"), "effectiveTo of rule " + id)));
+              date(node.get("effectiveTo"), "effectiveTo of rule " + id),
+              collapseOrNull(string(node, "remediation"))));
     }
     if (rules.isEmpty()) {
       throw new RuleDataException(LICENSE_RULES_FILE + " declares no rules.");
@@ -404,6 +432,10 @@ public final class RulesLoader {
       throw new RuleDataException(
           "Expected an ISO-8601 date for " + what + " but found: " + node, e);
     }
+  }
+
+  private static String collapseOrNull(String text) {
+    return text == null ? null : collapse(text);
   }
 
   /** Collapses the line breaks YAML folded scalars leave behind into single spaces. */

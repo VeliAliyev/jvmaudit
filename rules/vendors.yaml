@@ -3,6 +3,10 @@
 # Maps what an installation reports about itself onto a product id. The license rules in
 # oracle-license-rules.yaml are written against these ids.
 #
+# A product may list SEVERAL alternative match blocks under `match:`; the product is recognised
+# when ANY of them matches. That is not a convenience - it is how an installation with no readable
+# release file still gets identified, because then the only evidence is the `java -version` banner.
+#
 # Matching inputs (all optional, all case-insensitive):
 #   implementor          - the IMPLEMENTOR field of the JVM's `release` file, exact match
 #   implementorVersion   - a substring of IMPLEMENTOR_VERSION
@@ -10,7 +14,7 @@
 #   requiresJavaTm       - true  => only matches a build whose `java -version` says "Java(TM)"
 #                          false => only matches a build known NOT to say "Java(TM)"
 #                          absent => not considered
-# A product matches when every condition it states is satisfied. Products are tried in the order
+# Within one match block every condition stated must be satisfied. Products are tried in the order
 # they appear here, and the first match wins, so put the specific ones first.
 #
 # matchConfidence records how the match strings themselves were established:
@@ -28,8 +32,9 @@ products:
     vendor: "Oracle"
     oracle: true
     match:
-      implementor: "Oracle Corporation"
-      implementorVersion: "Oracle GraalVM"
+      - implementor: "Oracle Corporation"
+        implementorVersion: "Oracle GraalVM"
+      - runtimeName: "Oracle GraalVM"
     matchConfidence: unverified
     citations:
       - title: "GraalVM Free Terms and Conditions (GFTC)"
@@ -40,7 +45,8 @@ products:
     vendor: "GraalVM Community"
     oracle: false
     match:
-      implementorVersion: "GraalVM CE"
+      - implementorVersion: "GraalVM CE"
+      - runtimeName: "GraalVM CE"
     matchConfidence: unverified
     citations:
       - title: "GraalVM Community Edition builds (GPLv2+CPE)"
@@ -51,8 +57,9 @@ products:
     vendor: "Oracle"
     oracle: true
     match:
-      implementor: "Oracle Corporation"
-      requiresJavaTm: true
+      - implementor: "Oracle Corporation"
+        requiresJavaTm: true
+      - runtimeName: "Java(TM) SE Runtime Environment"
     matchConfidence: verified
     matchEvidence: >-
       Read from a real Oracle JDK 17.0.11 installation on 2026-08-30: release file has
@@ -67,8 +74,8 @@ products:
     vendor: "Oracle"
     oracle: true
     match:
-      implementor: "Oracle Corporation"
-      requiresJavaTm: false
+      - implementor: "Oracle Corporation"
+        requiresJavaTm: false
     matchConfidence: verified
     matchEvidence: >-
       Read from a real Oracle OpenJDK 21.0.2 installation on 2026-08-30: release file has
@@ -83,7 +90,8 @@ products:
     vendor: "Eclipse Adoptium"
     oracle: false
     match:
-      implementor: "Eclipse Adoptium"
+      - implementor: "Eclipse Adoptium"
+      - runtimeName: "Temurin"
     matchConfidence: unverified
     citations:
       - title: "Adoptium FAQ - Temurin is GPLv2+CPE licensed"
@@ -94,7 +102,8 @@ products:
     vendor: "AdoptOpenJDK"
     oracle: false
     match:
-      implementor: "AdoptOpenJDK"
+      - implementor: "AdoptOpenJDK"
+      - runtimeName: "AdoptOpenJDK"
     matchConfidence: unverified
     citations:
       - title: "Adoptium FAQ - AdoptOpenJDK is the predecessor of Eclipse Temurin"
@@ -105,7 +114,8 @@ products:
     vendor: "Amazon"
     oracle: false
     match:
-      implementor: "Amazon.com Inc."
+      - implementor: "Amazon.com Inc."
+      - runtimeName: "Corretto"
     matchConfidence: verified
     matchEvidence: >-
       Read from a real Amazon Corretto 17.0.13 installation on 2026-08-30: release file has
@@ -119,7 +129,8 @@ products:
     vendor: "Azul Systems"
     oracle: false
     match:
-      implementor: "Azul Systems, Inc."
+      - implementor: "Azul Systems, Inc."
+      - runtimeName: "Zulu"
     matchConfidence: unverified
     citations:
       - title: "Azul downloads - Zulu Builds of OpenJDK"
@@ -130,7 +141,8 @@ products:
     vendor: "Microsoft"
     oracle: false
     match:
-      implementor: "Microsoft"
+      - implementor: "Microsoft"
+      - runtimeName: "Microsoft-"
     matchConfidence: unverified
     citations:
       - title: "Microsoft Build of OpenJDK FAQ"
@@ -141,7 +153,8 @@ products:
     vendor: "Red Hat"
     oracle: false
     match:
-      implementor: "Red Hat, Inc."
+      - implementor: "Red Hat, Inc."
+      - runtimeName: "Red Hat"
     matchConfidence: unverified
     citations:
       - title: "Red Hat OpenJDK Life Cycle and Support Policy"
@@ -152,7 +165,8 @@ products:
     vendor: "BellSoft"
     oracle: false
     match:
-      implementor: "BellSoft"
+      - implementor: "BellSoft"
+      - runtimeName: "Liberica"
     matchConfidence: unverified
     citations:
       - title: "BellSoft Liberica JDK"
@@ -163,7 +177,8 @@ products:
     vendor: "SAP"
     oracle: false
     match:
-      implementor: "SAP SE"
+      - implementor: "SAP SE"
+      - runtimeName: "SapMachine"
     matchConfidence: unverified
     citations:
       - title: "SapMachine LICENSE (GPLv2+CPE)"
@@ -174,7 +189,8 @@ products:
     vendor: "IBM"
     oracle: false
     match:
-      implementor: "IBM Corporation"
+      - implementor: "IBM Corporation"
+      - runtimeName: "IBM Semeru"
     matchConfidence: unverified
     citations:
       - title: "IBM Semeru Runtimes licensing"
@@ -185,7 +201,8 @@ products:
     vendor: "Alibaba"
     oracle: false
     match:
-      implementor: "Alibaba"
+      - implementor: "Alibaba"
+      - runtimeName: "Dragonwell"
     matchConfidence: unverified
     citations:
       - title: "Alibaba Dragonwell (GPLv2+CPE)"
@@ -196,7 +213,8 @@ products:
     vendor: "Tencent"
     oracle: false
     match:
-      implementor: "Tencent"
+      - implementor: "Tencent"
+      - runtimeName: "Kona"
     matchConfidence: unverified
     citations:
       - title: "Tencent Kona (GPLv2+CPE)"

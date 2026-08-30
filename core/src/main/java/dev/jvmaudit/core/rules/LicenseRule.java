@@ -21,6 +21,8 @@ import java.util.Set;
  * @param confidence whether a cited source states this directly
  * @param effectiveFrom the date the licence term the rule describes started, or null
  * @param effectiveTo the date it ends, or null
+ * @param remediation for a rule whose status is UNKNOWN, what the user can do about it; null
+ *     otherwise
  */
 public record LicenseRule(
     String id,
@@ -31,7 +33,8 @@ public record LicenseRule(
     List<Citation> citations,
     Confidence confidence,
     LocalDate effectiveFrom,
-    LocalDate effectiveTo) {
+    LocalDate effectiveTo,
+    String remediation) {
 
   public LicenseRule {
     Objects.requireNonNull(id, "id");
@@ -43,6 +46,13 @@ public record LicenseRule(
     citations = List.copyOf(Objects.requireNonNull(citations, "citations"));
     if (citations.isEmpty()) {
       throw new RuleDataException("Rule '" + id + "' has no citation; every rule must cite one.");
+    }
+    if (status == LicenseStatus.UNKNOWN && (remediation == null || remediation.isBlank())) {
+      throw new RuleDataException(
+          "Rule '"
+              + id
+              + "' reports UNKNOWN but offers no 'remediation'; an unknown the user"
+              + " cannot act on is a dead end.");
     }
   }
 }

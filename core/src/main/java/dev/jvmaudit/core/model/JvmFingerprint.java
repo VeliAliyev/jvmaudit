@@ -57,6 +57,32 @@ public record JvmFingerprint(
     return bundledInside != null;
   }
 
+  /**
+   * A copy that records the application directory this JVM sits inside. The detector works this out
+   * after identification, because it needs to know where the JVM was found relative to the
+   * conventional install roots.
+   *
+   * @param directory the application directory, or null for none
+   * @return a copy carrying the value
+   */
+  public JvmFingerprint withBundledInside(Path directory) {
+    return new JvmFingerprint(
+        path,
+        product,
+        vendor,
+        implementorVersion,
+        versionString,
+        version,
+        runtimeVersion,
+        runtimeName,
+        javaVersionDate,
+        isJavaTm,
+        buildType,
+        sourceRepositories,
+        source,
+        directory);
+  }
+
   /** Builds a {@link JvmFingerprint}. Every field is optional. */
   public static final class Builder {
     private Path path;

@@ -15,7 +15,15 @@ class ClassificationTest {
   private static Classification classification(
       LicenseStatus status, Set<ClassificationFlag> flags) {
     return new Classification(
-        status, flags, "A summary.", List.of(CITATION), Confidence.VERIFIED, "a-rule", null, null);
+        status,
+        flags,
+        "A summary.",
+        List.of(CITATION),
+        Confidence.VERIFIED,
+        "a-rule",
+        null,
+        null,
+        "Do this to find out for certain.");
   }
 
   @Test
@@ -30,9 +38,29 @@ class ClassificationTest {
                     Confidence.VERIFIED,
                     "a-rule",
                     null,
+                    null,
                     null))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("must cite at least one source");
+  }
+
+  @Test
+  void refusesAnUnknownThatDoesNotSayHowToResolveIt() {
+    // An UNKNOWN with no way forward is a dead end for the reader, so it cannot be constructed.
+    assertThatThrownBy(
+            () ->
+                new Classification(
+                    LicenseStatus.UNKNOWN,
+                    Set.of(),
+                    "No idea.",
+                    List.of(CITATION),
+                    Confidence.VERIFIED,
+                    null,
+                    null,
+                    null,
+                    null))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("must say how to resolve it");
   }
 
   @Test

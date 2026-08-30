@@ -21,6 +21,9 @@ import java.util.Set;
  * @param ruleId the id of the rule that produced this result, or null when no rule matched
  * @param releaseDate the build's GA date as resolved during classification, or null
  * @param releaseDateSource where {@code releaseDate} came from, or null when it is null
+ * @param remediation what the user can do to turn an inconclusive result into a conclusive one, or
+ *     null when there is nothing to do. Always set when {@link #status()} is {@link
+ *     LicenseStatus#UNKNOWN}: an unknown that does not say how to resolve it is a dead end.
  */
 public record Classification(
     LicenseStatus status,
@@ -30,7 +33,8 @@ public record Classification(
     Confidence confidence,
     String ruleId,
     LocalDate releaseDate,
-    ReleaseDateSource releaseDateSource) {
+    ReleaseDateSource releaseDateSource,
+    String remediation) {
 
   /** Where the release date used during classification came from. */
   public enum ReleaseDateSource {
@@ -50,6 +54,10 @@ public record Classification(
           "A classification must cite at least one source; offending rule: " + ruleId);
     }
     flags = flags == null || flags.isEmpty() ? Set.of() : Set.copyOf(EnumSet.copyOf(flags));
+    if (status == LicenseStatus.UNKNOWN && (remediation == null || remediation.isBlank())) {
+      throw new IllegalArgumentException(
+          "An UNKNOWN classification must say how to resolve it; offending rule: " + ruleId);
+    }
   }
 
   /**
@@ -90,6 +98,7 @@ public record Classification(
         confidence,
         ruleId,
         releaseDate,
-        releaseDateSource);
+        releaseDateSource,
+        remediation);
   }
 }

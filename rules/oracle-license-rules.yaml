@@ -322,8 +322,10 @@ rules:
     flags: [DATE_UNKNOWN]
     summary: >-
       This is an Oracle JDK 21 build, but its release date could not be determined, and the JDK 21
-      licence depends on whether the build was released before or after September 2026 - check the
-      build's release notes.
+      licence depends on whether the build was released before or after September 2026.
+    remediation: >-
+      Read JAVA_VERSION_DATE from the release file in this installation, or look its exact version
+      up in Oracle's JDK 21 release notes; a build dated on or before 30 September 2026 is NFTC.
     citations: [oracle-faq, blog-jdk21]
     confidence: verified
 
@@ -368,6 +370,9 @@ rules:
     summary: >-
       This is an Oracle JDK 25 build, but its release date could not be determined, and the JDK 25
       licence depends on whether the build was released before or after September 2028.
+    remediation: >-
+      Read JAVA_VERSION_DATE from the release file in this installation, or look its exact version
+      up in Oracle's JDK 25 release notes; a build dated on or before 30 September 2028 is NFTC.
     citations: [oracle-faq]
     confidence: verified
 

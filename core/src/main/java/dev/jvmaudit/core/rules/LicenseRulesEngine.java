@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -67,7 +68,7 @@ public final class LicenseRulesEngine {
         return build(rule, product, resolved);
       }
     }
-    return unmatched(product, resolved);
+    return unmatched(product, resolved, fingerprint);
   }
 
   /**
@@ -104,19 +105,54 @@ public final class LicenseRulesEngine {
         Confidence.min(rule.confidence(), product.matchConfidence()),
         rule.id(),
         resolved.date(),
-        resolved.source());
+        resolved.source(),
+        rule.remediation());
   }
 
   private Classification unidentified(JvmFingerprint fingerprint, ResolvedDate resolved) {
     String vendor = fingerprint.vendor();
-    String summary =
-        vendor == null || vendor.isBlank()
-            ? "This installation does not say who built it, so JVMAudit cannot tell which licence"
-                + " applies - open its release file or run its bin/java -version by hand."
-            : "JVMAudit does not recognise the vendor string '"
-                + vendor
-                + "', so it will not guess at the licence - please open an issue so the vendor can"
-                + " be added.";
+    boolean oracleVendorWithoutDiscriminator =
+        vendor != null && vendor.toLowerCase(Locale.ROOT).contains("oracle");
+
+    String summary;
+    String remediation;
+    if (oracleVendorWithoutDiscriminator) {
+      // The one case where refusing to answer is the whole point: Oracle JDK and Oracle OpenJDK
+      // share this vendor string, and they differ by "may cost money" versus "free".
+      summary =
+          "This installation reports Oracle as its vendor, but Oracle JDK (which needs a paid"
+              + " licence for commercial use) and Oracle's free OpenJDK build both say that, so"
+              + " JVMAudit will not guess which one this is.";
+      remediation =
+          "Re-run the scan with --probe so JVMAudit can run "
+              + javaExecutable(fingerprint)
+              + " -version: output containing 'Java(TM)' means Oracle JDK, 'OpenJDK' means the free"
+              + " build. You can also read "
+              + fileInside(fingerprint, "LICENSE")
+              + " by hand - Oracle JDK ships the NFTC or OTN text, Oracle OpenJDK ships GPLv2 with"
+              + " the Classpath Exception.";
+    } else if (vendor == null || vendor.isBlank()) {
+      summary =
+          "This installation does not say who built it, so JVMAudit cannot tell which licence"
+              + " applies.";
+      remediation =
+          "Re-run the scan with --probe so JVMAudit can run "
+              + javaExecutable(fingerprint)
+              + " -version, or read "
+              + fileInside(fingerprint, "release")
+              + " by hand and look for its IMPLEMENTOR line.";
+    } else {
+      summary =
+          "JVMAudit does not recognise the vendor string '"
+              + vendor
+              + "', so it will not guess at the licence.";
+      remediation =
+          "Check the LICENSE file inside "
+              + pathOrPlaceholder(fingerprint)
+              + ", and please open an issue at https://github.com/VeliAliyev/jvmaudit with the"
+              + " contents of its release file so this vendor can be recognised.";
+    }
+
     return new Classification(
         LicenseStatus.UNKNOWN,
         Set.of(ClassificationFlag.PRODUCT_UNIDENTIFIED),
@@ -125,21 +161,41 @@ public final class LicenseRulesEngine {
         Confidence.VERIFIED,
         null,
         resolved.date(),
-        resolved.source());
+        resolved.source(),
+        remediation);
   }
 
-  private Classification unmatched(Product product, ResolvedDate resolved) {
+  private Classification unmatched(Product product, ResolvedDate resolved, JvmFingerprint fp) {
     return new Classification(
         LicenseStatus.UNKNOWN,
         Set.of(),
         "No licence rule covers this "
             + product.displayName()
-            + " build, so JVMAudit will not guess - please open an issue with its release file.",
+            + " build, so JVMAudit will not guess.",
         List.of(faqCitation()),
         Confidence.VERIFIED,
         null,
         resolved.date(),
-        resolved.source());
+        resolved.source(),
+        "Please open an issue at https://github.com/VeliAliyev/jvmaudit with the contents of "
+            + fileInside(fp, "release")
+            + " so a rule can be written for it.");
+  }
+
+  private static String pathOrPlaceholder(JvmFingerprint fingerprint) {
+    return fingerprint.path() == null ? "this installation" : fingerprint.path().toString();
+  }
+
+  private static String fileInside(JvmFingerprint fingerprint, String name) {
+    return fingerprint.path() == null
+        ? "the " + name + " file inside this installation"
+        : fingerprint.path().resolve(name).toString();
+  }
+
+  private static String javaExecutable(JvmFingerprint fingerprint) {
+    return fingerprint.path() == null
+        ? "bin/java"
+        : fingerprint.path().resolve("bin").resolve("java").toString();
   }
 
   private Citation faqCitation() {

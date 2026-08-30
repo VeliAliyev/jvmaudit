@@ -94,4 +94,79 @@ class ProductCatalogTest {
     assertThat(CATALOG.byId("temurin")).map(Product::displayName).contains("Eclipse Temurin");
     assertThat(CATALOG.byId("not-a-product")).isEmpty();
   }
+
+  @Test
+  void recognisesAVendorFromTheVersionBannerAloneWhenThereIsNoReleaseFile() {
+    // An installation with no readable release file offers only the java -version banner, so each
+    // product carries an alternative that matches on that.
+    assertThat(
+            CATALOG.resolve(
+                null,
+                null,
+                "OpenJDK Runtime Environment Temurin-21.0.4+7 (build 21.0.4+7-LTS)",
+                Boolean.FALSE))
+        .map(Product::id)
+        .contains("temurin");
+    assertThat(
+            CATALOG.resolve(
+                null,
+                null,
+                "OpenJDK Runtime Environment Corretto-17.0.13.11.1 (build 17.0.13+11)",
+                Boolean.FALSE))
+        .map(Product::id)
+        .contains("corretto");
+    assertThat(
+            CATALOG.resolve(
+                null, null, "OpenJDK Runtime Environment (Zulu 8.78.0.19-CA-win64)", Boolean.FALSE))
+        .map(Product::id)
+        .contains("zulu");
+  }
+
+  @Test
+  void recognisesAnOracleJdkFromItsBannerAlone() {
+    assertThat(
+            CATALOG.resolve(
+                null,
+                null,
+                "Java(TM) SE Runtime Environment (build 17.0.13+10-LTS-58)",
+                Boolean.TRUE))
+        .map(Product::id)
+        .contains("oracle-jdk");
+  }
+
+  @Test
+  void prefersOracleGraalVmOverOracleJdkWhenTheBannerNamesBoth() {
+    // Oracle GraalVM's banner also says "Java(TM) SE Runtime Environment", so catalogue order is
+    // what keeps it from being mistaken for a plain Oracle JDK.
+    assertThat(
+            CATALOG.resolve(
+                null,
+                null,
+                "Java(TM) SE Runtime Environment Oracle GraalVM 21.0.4+8.1 (build 21.0.4+8-LTS)",
+                Boolean.TRUE))
+        .map(Product::id)
+        .contains("oracle-graalvm");
+  }
+
+  @Test
+  void stillRefusesToNameAnUnbrandedOpenJdkBuild() {
+    // "OpenJDK Runtime Environment (build 21.0.2+13-58)" could be Oracle's own free build or any
+    // rebuild of it. Without a release file there is no evidence, so there is no answer.
+    assertThat(
+            CATALOG.resolve(
+                null, null, "OpenJDK Runtime Environment (build 21.0.2+13-58)", Boolean.FALSE))
+        .isEmpty();
+  }
+
+  @Test
+  void everyProductStatesAtLeastOneMatchCondition() {
+    assertThat(CATALOG.entries())
+        .allSatisfy(
+            entry -> {
+              assertThat(entry.conditions()).as(entry.product().id()).isNotEmpty();
+              assertThat(entry.conditions())
+                  .as(entry.product().id())
+                  .allSatisfy(condition -> assertThat(condition.isEmpty()).isFalse());
+            });
+  }
 }

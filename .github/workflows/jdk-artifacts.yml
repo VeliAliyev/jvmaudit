@@ -1,0 +1,122 @@
+name: JDK artifact survey
+
+# Downloads real JDKs from their vendors and records exactly what each one says about itself.
+#
+# Why this exists: Oracle JDK and Oracle OpenJDK both report IMPLEMENTOR="Oracle Corporation" and
+# neither sets IMPLEMENTOR_VERSION, so the release file alone cannot tell a paid-licence build from
+# a free one. JVMAudit therefore refuses to guess and runs `java -version` instead. Two candidate
+# static discriminators would remove that need, and both are measured here:
+#
+#   1. the SOURCE field - an Oracle JDK appears to carry a second "open:git:" component where an
+#      Oracle OpenJDK build carries only ".:git:";
+#   2. the licence text shipped in the installation root - Oracle JDK ships the NFTC or OTN text,
+#      Oracle OpenJDK ships GPLv2 with the Classpath Exception.
+#
+# Neither is encoded in rules/vendors.yaml until this job shows them holding across at least three
+# versions per family AND agreeing with each other. Until then exec stays the discriminator.
+#
+# Everything downloaded here is fetched through the vendors' own GitHub Actions, under the licence
+# each vendor publishes it under. Oracle JDK 21 and 25 are currently NFTC, which permits this.
+#
+# Manual only: it downloads gigabytes and does not belong in the per-push build.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  oracle:
+    name: Oracle ${{ matrix.website }} ${{ matrix.release }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Three versions per family, as required before either discriminator may be encoded.
+        website: [ oracle.com, jdk.java.net ]
+        release: [ '21', '25', '26' ]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Oracle JDK ${{ matrix.release }} from ${{ matrix.website }}
+        id: setup
+        continue-on-error: true
+        uses: oracle-actions/setup-java@v1
+        with:
+          website: ${{ matrix.website }}
+          release: ${{ matrix.release }}
+
+      - name: Record what this installation says about itself
+        if: steps.setup.outcome == 'success'
+        run: ./.github/scripts/survey-jdk.sh "oracle-${{ matrix.website }}-${{ matrix.release }}"
+
+      - uses: actions/upload-artifact@v5
+        if: steps.setup.outcome == 'success'
+        with:
+          name: survey-oracle-${{ matrix.website }}-${{ matrix.release }}
+          path: survey/
+          if-no-files-found: warn
+
+  vendors:
+    name: ${{ matrix.distribution }} ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distribution: [ temurin, corretto, zulu, microsoft, liberica, semeru, sapmachine, dragonwell, oracle ]
+        version: [ '8', '11', '17', '21' ]
+        exclude:
+          # Distributions that publish no build for that line.
+          - { distribution: microsoft, version: '8' }
+          - { distribution: microsoft, version: '11' }
+          - { distribution: sapmachine, version: '8' }
+          - { distribution: dragonwell, version: '21' }
+          - { distribution: oracle, version: '8' }
+          - { distribution: oracle, version: '11' }
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up ${{ matrix.distribution }} ${{ matrix.version }}
+        id: setup
+        continue-on-error: true
+        uses: actions/setup-java@v5
+        with:
+          distribution: ${{ matrix.distribution }}
+          java-version: ${{ matrix.version }}
+
+      - name: Record what this installation says about itself
+        if: steps.setup.outcome == 'success'
+        run: ./.github/scripts/survey-jdk.sh "${{ matrix.distribution }}-${{ matrix.version }}"
+
+      - uses: actions/upload-artifact@v5
+        if: steps.setup.outcome == 'success'
+        with:
+          name: survey-${{ matrix.distribution }}-${{ matrix.version }}
+          path: survey/
+          if-no-files-found: warn
+
+  report:
+    name: Compare and report
+    runs-on: ubuntu-latest
+    needs: [ oracle, vendors ]
+    if: always()
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        with:
+          path: surveys
+          pattern: survey-*
+          merge-multiple: true
+
+      - name: Diff the release files and test both candidate discriminators
+        run: python3 ./.github/scripts/compare-jdk-surveys.py surveys
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: jdk-survey-report
+          path: |
+            surveys/
+            discriminator-report.md
+          if-no-files-found: warn
