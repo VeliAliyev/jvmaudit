@@ -11,8 +11,7 @@ audit-ready evidence. Runs entirely offline.**
 ## Why this exists
 
 Oracle licenses Java SE per **employee**, and its price list defines that as every full-time,
-part-time and temporary employee *plus* every contractor, agent and consultant who supports your
-internal business operations — **not** the number of people who use Java. Oracle's own published
+part-time and temporary employee *plus* the full-time, part-time and temporary employees of your agents, contractors, outsourcers and consultants who support your internal business operations — **not** the number of people who use Java. Oracle's own published
 example is a 28,000-employee company paying **$2,268,000 a year**
 ([Oracle Java SE Universal Subscription price list](https://www.oracle.com/a/ocom/docs/corporate/pricing/java-se-subscription-pricelist-5028356.pdf)).
 Meanwhile the free window for Oracle JDK 21 closes with the **October 2026** Critical Patch Update,
@@ -43,12 +42,12 @@ Getting that distinction wrong in either direction is the whole problem.
 
 ### Downloads
 
-| File | Needs | Use when |
-| --- | --- | --- |
-| `jvmaudit.jar` | Java 17+ already installed | you have Java, which you probably do |
-| `jvmaudit-<version>-linux-x64.tar.gz` | nothing | no Java on the box, or you want it self-contained |
-| `jvmaudit-<version>-macos-aarch64.tar.gz` | nothing | as above, Apple silicon |
-| `jvmaudit-<version>-windows-x64.zip` | nothing | as above, Windows |
+| File                                      | Needs                      | Use when                                          |
+| ----------------------------------------- | -------------------------- | ------------------------------------------------- |
+| `jvmaudit.jar`                            | Java 17+ already installed | you have Java, which you probably do              |
+| `jvmaudit-<version>-linux-x64.tar.gz`     | nothing                    | no Java on the box, or you want it self-contained |
+| `jvmaudit-<version>-macos-aarch64.tar.gz` | nothing                    | as above, Apple silicon                           |
+| `jvmaudit-<version>-windows-x64.zip`      | nothing                    | as above, Windows                                 |
 
 Every release ships `SHA256SUMS.txt`. Verify before you run anything on a production server:
 
