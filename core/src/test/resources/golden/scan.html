@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JVMAudit report - build-agent-07</title>
+<style>
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 2rem 1.5rem 4rem; background: #fbfbfa; color: #1a1a18;
+       font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+       Arial, sans-serif; }
+header { border-bottom: 2px solid #1a1a18; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+h1 { font-size: 1.5rem; margin: 0 0 .35rem; letter-spacing: -.01em; }
+h2 { font-size: 1.05rem; margin: 2rem 0 .6rem; }
+.summary { margin: 0; font-size: 1.05rem; font-weight: 600; }
+.meta dl { display: grid; grid-template-columns: max-content 1fr; gap: .2rem 1.25rem;
+           margin: 0 0 1.5rem; font-size: .85rem; }
+.meta dt { color: #6b6b66; }
+.meta dd { margin: 0; }
+.counts { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.75rem; }
+.count { border: 1px solid #d9d9d4; border-left-width: 5px; border-radius: 4px;
+         padding: .5rem .9rem; background: #fff; min-width: 8.5rem; }
+.count .n { display: block; font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+.count .l { display: block; font-size: .72rem; text-transform: uppercase;
+            letter-spacing: .06em; color: #6b6b66; }
+.count.ok { border-left-color: #2f7d32; }
+.count.review { border-left-color: #b26a00; }
+.count.action { border-left-color: #b3261e; }
+.count.unknown { border-left-color: #8a8a84; }
+table { border-collapse: collapse; width: 100%; background: #fff;
+        border: 1px solid #d9d9d4; }
+th { text-align: left; font-size: .72rem; text-transform: uppercase;
+     letter-spacing: .06em; color: #6b6b66; padding: .6rem .7rem;
+     border-bottom: 1px solid #d9d9d4; background: #f4f4f1; }
+td { padding: .7rem; border-bottom: 1px solid #ececE7; vertical-align: top;
+     font-size: .88rem; }
+tr.ok td.status .pill { background: #e6f2e6; color: #1e5c21; }
+tr.review td.status .pill { background: #fdf0dc; color: #8a5200; }
+tr.action td.status .pill { background: #fbe4e2; color: #8c1d18; }
+tr.unknown td.status .pill { background: #eceCE9; color: #55554f; }
+.pill { display: inline-block; padding: .18rem .5rem; border-radius: 3px;
+        font-size: .72rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .04em; white-space: nowrap; }
+code { font: .82em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+       background: #f4f4f1; padding: .08em .3em; border-radius: 3px; word-break: break-all; }
+td.why { max-width: 34rem; }
+td.why p { margin: 0 0 .45rem; }
+.remediation { color: #1a4f8a; }
+.unverified { color: #8a5200; font-weight: 600; }
+.bundled { font-size: .78rem; color: #6b6b66; margin-top: .3rem; }
+ul.flags, ul.citations { margin: .2rem 0 .45rem; padding-left: 1.1rem;
+                         font-size: .8rem; color: #55554f; }
+ul.citations a { color: #1a4f8a; }
+.rule { font-size: .75rem; color: #8a8a84; margin: .2rem 0 0; }
+td.sources { font-size: .78rem; color: #55554f; white-space: nowrap; }
+.issues ul { padding-left: 1.1rem; font-size: .85rem; }
+.issues li.warning { color: #8a5200; }
+.issues li.error { color: #8c1d18; }
+.empty { padding: 2rem; text-align: center; color: #6b6b66; background: #fff;
+         border: 1px dashed #d9d9d4; }
+footer { margin-top: 2.5rem; border-top: 1px solid #d9d9d4; padding-top: 1rem; }
+.disclaimer { font-weight: 600; }
+.offline, .disclaimer { font-size: .82rem; color: #55554f; margin: .3rem 0; }
+@media (prefers-color-scheme: dark) {
+  body { background: #16161a; color: #e8e8e4; }
+  header { border-bottom-color: #e8e8e4; }
+  .count, table { background: #1f1f24; border-color: #34343c; }
+  th { background: #26262c; border-bottom-color: #34343c; color: #a3a39c; }
+  td { border-bottom-color: #2b2b32; }
+  code { background: #26262c; }
+  .meta dt, td.sources, .rule, .bundled, .offline, .disclaimer { color: #a3a39c; }
+  ul.flags, ul.citations { color: #a3a39c; }
+  ul.citations a, .remediation { color: #8ab4f8; }
+  tr.ok td.status .pill { background: #1d3a1f; color: #a8dcab; }
+  tr.review td.status .pill { background: #3d2c10; color: #f0c07a; }
+  tr.action td.status .pill { background: #43201d; color: #f2b8b5; }
+  tr.unknown td.status .pill { background: #2b2b32; color: #c6c6bf; }
+  .empty { background: #1f1f24; border-color: #34343c; }
+  footer { border-top-color: #34343c; }
+}
+@media print {
+  body { background: #fff; padding: 0; }
+  .count, table { border-color: #999; }
+}
+</style>
+</head>
+<body>
+<header>
+<h1>Java inventory and licence review</h1>
+<p class="summary">5 JVMs found: 1 free, 2 review, 1 Oracle-paid-likely, 1 unknown.</p>
+</header>
+<section class="meta">
+<dl>
+<dt>Host</dt><dd>build-agent-07</dd>
+<dt>Operating system</dt><dd>Linux 6.8.0 (amd64)</dd>
+<dt>Scanned as</dt><dd>svc-audit</dd>
+<dt>Scan started</dt><dd>2026-08-30T09:00:00Z</dd>
+<dt>Scan took</dt><dd>1234 ms</dd>
+<dt>Deep filesystem sweep</dt><dd>yes</dd>
+<dt>JVMAudit version</dt><dd>1.2.3-test</dd>
+<dt>Licence rules version</dt><dd>2026.08.30</dd>
+</dl>
+</section>
+<section class="counts">
+<div class="count ok"><span class="n">1</span><span class="l">FREE</span></div>
+<div class="count review"><span class="n">2</span><span class="l">REVIEW</span></div>
+<div class="count action"><span class="n">1</span><span class="l">ORACLE PAID LIKELY</span></div>
+<div class="count unknown"><span class="n">1</span><span class="l">UNKNOWN</span></div>
+</section>
+<table>
+<thead><tr><th>Status</th><th>Product</th><th>Version</th><th>Path</th><th>Why</th><th>Sources</th></tr></thead>
+<tbody>
+<tr class="action">
+<td class="status"><span class="pill">ORACLE PAID LIKELY</span></td>
+<td>Oracle JDK / Oracle JRE</td>
+<td class="version">8u211</td>
+<td class="path"><code>/opt/java/oracle-jdk-8u211</code></td>
+<td class="why"><p>Oracle JDK/JRE 8u211 (16 April 2019) and later are under the OTN licence, which is free only for personal use, development, testing, prototyping and demonstration - commercial or production use needs a Java SE Universal Subscription.</p>
+<ul class="citations">
+<li><a href="https://www.oracle.com/java/technologies/javase/jdk-faqs.html" rel="noreferrer noopener">Oracle Java SE Licensing FAQ (updated 16 September 2025)</a></li>
+<li><a href="https://www.oracle.com/java/technologies/java-se-support-roadmap.html" rel="noreferrer noopener">Oracle Java SE Support Roadmap</a></li>
+<li><a href="https://www.oracle.com/java/technologies/javase/8all-relnotes.html" rel="noreferrer noopener">Consolidated JDK 8 Release Notes</a></li>
+</ul>
+<p class="rule">rule: <code>oracle-jdk-8-otn</code></p>
+</td>
+<td class="sources">PATH, well-known install root</td>
+</tr>
+<tr class="review">
+<td class="status"><span class="pill">REVIEW</span></td>
+<td>Oracle JDK / Oracle JRE</td>
+<td class="version">8u202</td>
+<td class="path"><code>/opt/vendor-app/AcmeSuite/jre</code><div class="bundled">bundled inside <code>/opt/vendor-app/AcmeSuite</code></div></td>
+<td class="why"><p>Oracle JDK/JRE 8u202 and earlier are under the old Binary Code Licence, which allows free internal use on general purpose desktops and servers but excludes the Commercial Features and excludes embedded or dedicated-function systems - review how this installation is used.</p>
+<ul class="flags">
+<li>How this installation is used decides whether it is licensed</li>
+<li>Bundled inside another application - verify with that application&#39;s vendor before acting</li>
+</ul>
+<ul class="citations">
+<li><a href="https://www.oracle.com/downloads/licenses/binary-code-license.html" rel="noreferrer noopener">Oracle Binary Code License Agreement for the Java SE Platform Products and JavaFX</a></li>
+<li><a href="https://www.oracle.com/java/technologies/java-se-support-roadmap.html" rel="noreferrer noopener">Oracle Java SE Support Roadmap</a></li>
+<li><a href="https://www.oracle.com/java/technologies/javase/8all-relnotes.html" rel="noreferrer noopener">Consolidated JDK 8 Release Notes</a></li>
+<li><a href="https://www.oracle.com/java/technologies/javase/jdk-faqs.html" rel="noreferrer noopener">Oracle Java SE Licensing FAQ</a></li>
+</ul>
+<p class="rule">rule: <code>oracle-jdk-8-bcl</code></p>
+</td>
+<td class="sources">deep scan</td>
+</tr>
+<tr class="review">
+<td class="status"><span class="pill">REVIEW</span></td>
+<td>Oracle JDK / Oracle JRE</td>
+<td class="version">17.0.12</td>
+<td class="path"><code>/opt/java/oracle-jdk-17.0.12</code></td>
+<td class="why"><p>Oracle JDK 17 releases up to and including 17.0.12 (September 2024) are under the No-Fee Terms and Conditions licence and are free for all uses including production, but this line receives no further free updates - 17.0.13 and later are OTN licensed.</p>
+<ul class="flags">
+<li>This line receives no further updates under the free licence</li>
+</ul>
+<ul class="citations">
+<li><a href="https://www.oracle.com/java/technologies/javase/jdk-faqs.html" rel="noreferrer noopener">Oracle Java SE Licensing FAQ (updated 16 September 2025)</a></li>
+<li><a href="https://www.oracle.com/java/technologies/java-se-support-roadmap.html" rel="noreferrer noopener">Oracle Java SE Support Roadmap</a></li>
+<li><a href="https://www.oracle.com/downloads/licenses/no-fee-license.html" rel="noreferrer noopener">Oracle No-Fee Terms and Conditions (NFTC)</a></li>
+</ul>
+<p class="rule">rule: <code>oracle-jdk-17-nftc-by-date</code></p>
+</td>
+<td class="sources">well-known install root</td>
+</tr>
+<tr class="unknown">
+<td class="status"><span class="pill">UNKNOWN</span></td>
+<td>Acme Java Systems Ltd.</td>
+<td class="version">21.0.4</td>
+<td class="path"><code>/opt/java/mystery-jdk</code></td>
+<td class="why"><p>JVMAudit does not recognise the vendor string &#39;Acme Java Systems Ltd.&#39;, so it will not guess at the licence.</p>
+<p class="remediation">Check the LICENSE file inside /opt/java/mystery-jdk, and please open an issue at https://github.com/VeliAliyev/jvmaudit with the contents of its release file so this vendor can be recognised.</p>
+<ul class="flags">
+<li>The vendor of this installation was not recognised</li>
+</ul>
+<ul class="citations">
+<li><a href="https://www.oracle.com/java/technologies/javase/jdk-faqs.html" rel="noreferrer noopener">Oracle Java SE Licensing FAQ (updated 16 September 2025)</a></li>
+</ul>
+</td>
+<td class="sources">deep scan</td>
+</tr>
+<tr class="ok">
+<td class="status"><span class="pill">FREE</span></td>
+<td>Eclipse Temurin</td>
+<td class="version">21.0.4</td>
+<td class="path"><code>/opt/java/temurin-21</code></td>
+<td class="why"><p>This is a non-Oracle OpenJDK distribution under an open source licence, so it carries no Oracle licence cost.</p>
+<ul class="flags">
+<li>Recognised from a vendor string JVMAudit has not yet confirmed against a real build</li>
+</ul>
+<ul class="citations">
+<li><a href="https://openjdk.org/legal/gplv2+ce.html" rel="noreferrer noopener">GNU General Public License v2 with the Classpath Exception</a></li>
+<li><a href="https://adoptium.net/docs/faq/" rel="noreferrer noopener">Adoptium FAQ - Temurin is GPLv2+CPE licensed</a></li>
+</ul>
+<p class="rule">rule: <code>third-party-open-source</code></p>
+</td>
+<td class="sources">JAVA_HOME, well-known install root</td>
+</tr>
+</tbody>
+</table>
+<section class="issues">
+<h2>Scan completeness</h2>
+<ul>
+<li class="warning"><strong>warning</strong> Only 12 of 340 running processes exposed their command line to this user. Run JVMAudit as administrator (Windows) or root (Linux and macOS) for complete coverage of running JVMs.</li>
+</ul>
+</section>
+<footer>
+<p class="disclaimer">JVMAudit is an inventory tool, not legal advice. License conclusions depend on your contracts with Oracle.</p>
+<p class="offline">Produced offline by JVMAudit 1.2.3-test. This file makes no network requests and contains no scripts.</p>
+</footer>
+</body>
+</html>

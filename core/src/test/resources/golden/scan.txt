@@ -1,0 +1,48 @@
+ORACLE PAID LIKELY  Oracle JDK / Oracle JRE         8u211        /opt/java/oracle-jdk-8u211
+    Oracle JDK/JRE 8u211 (16 April 2019) and later are under the OTN licence, which is free only for
+    personal use, development, testing, prototyping and demonstration - commercial or production use
+    needs a Java SE Universal Subscription.
+    source: https://www.oracle.com/java/technologies/javase/jdk-faqs.html
+    source: https://www.oracle.com/java/technologies/java-se-support-roadmap.html
+    source: https://www.oracle.com/java/technologies/javase/8all-relnotes.html
+
+REVIEW              Oracle JDK / Oracle JRE         8u202        /opt/vendor-app/AcmeSuite/jre
+    Oracle JDK/JRE 8u202 and earlier are under the old Binary Code Licence, which allows free
+    internal use on general purpose desktops and servers but excludes the Commercial Features and
+    excludes embedded or dedicated-function systems - review how this installation is used.
+    source: https://www.oracle.com/downloads/licenses/binary-code-license.html
+    source: https://www.oracle.com/java/technologies/java-se-support-roadmap.html
+    source: https://www.oracle.com/java/technologies/javase/8all-relnotes.html
+    source: https://www.oracle.com/java/technologies/javase/jdk-faqs.html
+
+REVIEW              Oracle JDK / Oracle JRE         17.0.12      /opt/java/oracle-jdk-17.0.12
+    Oracle JDK 17 releases up to and including 17.0.12 (September 2024) are under the No-Fee Terms
+    and Conditions licence and are free for all uses including production, but this line receives no
+    further free updates - 17.0.13 and later are OTN licensed.
+    source: https://www.oracle.com/java/technologies/javase/jdk-faqs.html
+    source: https://www.oracle.com/java/technologies/java-se-support-roadmap.html
+    source: https://www.oracle.com/downloads/licenses/no-fee-license.html
+
+UNKNOWN             Acme Java Systems Ltd.          21.0.4       /opt/java/mystery-jdk
+    JVMAudit does not recognise the vendor string 'Acme Java Systems Ltd.', so it will not guess at
+    the licence.
+    -> Check the LICENSE file inside /opt/java/mystery-jdk, and please open an issue at
+    https://github.com/VeliAliyev/jvmaudit with the contents of its release file so this vendor can
+    be recognised.
+    source: https://www.oracle.com/java/technologies/javase/jdk-faqs.html
+
+FREE                Eclipse Temurin                 21.0.4       /opt/java/temurin-21
+    This is a non-Oracle OpenJDK distribution under an open source licence, so it carries no Oracle
+    licence cost.
+    note: Recognised from a vendor string JVMAudit has not yet confirmed against a real build. The
+    licence conclusion above is unaffected.
+    source: https://openjdk.org/legal/gplv2+ce.html
+    source: https://adoptium.net/docs/faq/
+
+
+5 JVMs found: 1 free, 2 review, 1 Oracle-paid-likely, 1 unknown.
+
+warning: Only 12 of 340 running processes exposed their command line to this user. Run JVMAudit as administrator (Windows) or root (Linux and macOS) for complete coverage of running JVMs.
+
+JVMAudit is an inventory tool, not legal advice. License conclusions depend on your contracts with
+Oracle.

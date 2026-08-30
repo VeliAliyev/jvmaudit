@@ -1,0 +1,300 @@
+{
+  "schemaVersion" : 1,
+  "tool" : {
+    "name" : "jvmaudit",
+    "version" : "1.2.3-test"
+  },
+  "rulesVersion" : "2026.08.30",
+  "disclaimer" : "JVMAudit is an inventory tool, not legal advice. License conclusions depend on your contracts with Oracle.",
+  "scan" : {
+    "startedAt" : "2026-08-30T09:00:00Z",
+    "durationMillis" : 1234,
+    "deep" : true
+  },
+  "host" : {
+    "hostname" : "build-agent-07",
+    "user" : "svc-audit",
+    "os" : {
+      "name" : "Linux",
+      "version" : "6.8.0",
+      "arch" : "amd64"
+    }
+  },
+  "summary" : {
+    "total" : 5,
+    "bySeverity" : {
+      "OK" : 1,
+      "REVIEW" : 2,
+      "ACTION" : 1,
+      "UNKNOWN" : 1
+    },
+    "byStatus" : {
+      "FREE" : 1,
+      "ORACLE_FREE_NFTC" : 1,
+      "ORACLE_FREE_GFTC" : 0,
+      "LEGACY_BCL" : 1,
+      "ORACLE_PAID_LIKELY" : 1,
+      "UNKNOWN" : 1
+    }
+  },
+  "jvms" : [
+    {
+      "path" : "//opt//java//oracle-jdk-8u211",
+      "aliases" : [ ],
+      "sources" : [
+        "WELL_KNOWN_ROOT",
+        "PATH"
+      ],
+      "product" : {
+        "id" : "oracle-jdk",
+        "displayName" : "Oracle JDK / Oracle JRE",
+        "vendor" : "Oracle",
+        "oracle" : true
+      },
+      "vendorString" : "Oracle",
+      "implementorVersion" : null,
+      "version" : "8u211",
+      "versionString" : "1.8.0_211",
+      "runtimeVersion" : null,
+      "javaVersionDate" : null,
+      "buildType" : null,
+      "javaTm" : true,
+      "identifiedFrom" : "RELEASE_FILE",
+      "bundledInside" : null,
+      "classification" : {
+        "status" : "ORACLE_PAID_LIKELY",
+        "severity" : "ACTION",
+        "confidence" : "VERIFIED",
+        "ruleId" : "oracle-jdk-8-otn",
+        "summary" : "Oracle JDK/JRE 8u211 (16 April 2019) and later are under the OTN licence, which is free only for personal use, development, testing, prototyping and demonstration - commercial or production use needs a Java SE Universal Subscription.",
+        "remediation" : null,
+        "flags" : [ ],
+        "releaseDate" : "2019-04-16",
+        "releaseDateSource" : "RELEASE_CATALOG",
+        "citations" : [
+          {
+            "id" : "oracle-faq",
+            "title" : "Oracle Java SE Licensing FAQ (updated 16 September 2025)",
+            "url" : "https://www.oracle.com/java/technologies/javase/jdk-faqs.html"
+          },
+          {
+            "id" : "oracle-roadmap",
+            "title" : "Oracle Java SE Support Roadmap",
+            "url" : "https://www.oracle.com/java/technologies/java-se-support-roadmap.html"
+          },
+          {
+            "id" : "relnotes-8",
+            "title" : "Consolidated JDK 8 Release Notes",
+            "url" : "https://www.oracle.com/java/technologies/javase/8all-relnotes.html"
+          }
+        ]
+      }
+    },
+    {
+      "path" : "//opt//vendor-app//AcmeSuite//jre",
+      "aliases" : [ ],
+      "sources" : [
+        "DEEP_SCAN"
+      ],
+      "product" : {
+        "id" : "oracle-jdk",
+        "displayName" : "Oracle JDK / Oracle JRE",
+        "vendor" : "Oracle",
+        "oracle" : true
+      },
+      "vendorString" : "Oracle",
+      "implementorVersion" : null,
+      "version" : "8u202",
+      "versionString" : "1.8.0_202",
+      "runtimeVersion" : null,
+      "javaVersionDate" : null,
+      "buildType" : null,
+      "javaTm" : true,
+      "identifiedFrom" : "RELEASE_FILE",
+      "bundledInside" : "//opt//vendor-app//AcmeSuite",
+      "classification" : {
+        "status" : "LEGACY_BCL",
+        "severity" : "REVIEW",
+        "confidence" : "VERIFIED",
+        "ruleId" : "oracle-jdk-8-bcl",
+        "summary" : "Oracle JDK/JRE 8u202 and earlier are under the old Binary Code Licence, which allows free internal use on general purpose desktops and servers but excludes the Commercial Features and excludes embedded or dedicated-function systems - review how this installation is used.",
+        "remediation" : null,
+        "flags" : [
+          "REVIEW_REQUIRED",
+          "POSSIBLY_VENDOR_BUNDLED"
+        ],
+        "releaseDate" : "2019-01-15",
+        "releaseDateSource" : "RELEASE_CATALOG",
+        "citations" : [
+          {
+            "id" : "bcl",
+            "title" : "Oracle Binary Code License Agreement for the Java SE Platform Products and JavaFX",
+            "url" : "https://www.oracle.com/downloads/licenses/binary-code-license.html"
+          },
+          {
+            "id" : "oracle-roadmap",
+            "title" : "Oracle Java SE Support Roadmap",
+            "url" : "https://www.oracle.com/java/technologies/java-se-support-roadmap.html"
+          },
+          {
+            "id" : "relnotes-8",
+            "title" : "Consolidated JDK 8 Release Notes",
+            "url" : "https://www.oracle.com/java/technologies/javase/8all-relnotes.html"
+          },
+          {
+            "id" : "https://www.oracle.com/java/technologies/javase/jdk-faqs.html",
+            "title" : "Oracle Java SE Licensing FAQ",
+            "url" : "https://www.oracle.com/java/technologies/javase/jdk-faqs.html"
+          }
+        ]
+      }
+    },
+    {
+      "path" : "//opt//java//oracle-jdk-17.0.12",
+      "aliases" : [ ],
+      "sources" : [
+        "WELL_KNOWN_ROOT"
+      ],
+      "product" : {
+        "id" : "oracle-jdk",
+        "displayName" : "Oracle JDK / Oracle JRE",
+        "vendor" : "Oracle",
+        "oracle" : true
+      },
+      "vendorString" : "Oracle",
+      "implementorVersion" : null,
+      "version" : "17.0.12",
+      "versionString" : "17.0.12",
+      "runtimeVersion" : null,
+      "javaVersionDate" : "2024-07-16",
+      "buildType" : null,
+      "javaTm" : true,
+      "identifiedFrom" : "RELEASE_FILE",
+      "bundledInside" : null,
+      "classification" : {
+        "status" : "ORACLE_FREE_NFTC",
+        "severity" : "REVIEW",
+        "confidence" : "VERIFIED",
+        "ruleId" : "oracle-jdk-17-nftc-by-date",
+        "summary" : "Oracle JDK 17 releases up to and including 17.0.12 (September 2024) are under the No-Fee Terms and Conditions licence and are free for all uses including production, but this line receives no further free updates - 17.0.13 and later are OTN licensed.",
+        "remediation" : null,
+        "flags" : [
+          "NO_FURTHER_FREE_UPDATES"
+        ],
+        "releaseDate" : "2024-07-16",
+        "releaseDateSource" : "RELEASE_FILE",
+        "citations" : [
+          {
+            "id" : "oracle-faq",
+            "title" : "Oracle Java SE Licensing FAQ (updated 16 September 2025)",
+            "url" : "https://www.oracle.com/java/technologies/javase/jdk-faqs.html"
+          },
+          {
+            "id" : "oracle-roadmap",
+            "title" : "Oracle Java SE Support Roadmap",
+            "url" : "https://www.oracle.com/java/technologies/java-se-support-roadmap.html"
+          },
+          {
+            "id" : "nftc",
+            "title" : "Oracle No-Fee Terms and Conditions (NFTC)",
+            "url" : "https://www.oracle.com/downloads/licenses/no-fee-license.html"
+          }
+        ]
+      }
+    },
+    {
+      "path" : "//opt//java//mystery-jdk",
+      "aliases" : [ ],
+      "sources" : [
+        "DEEP_SCAN"
+      ],
+      "product" : null,
+      "vendorString" : "Acme Java Systems Ltd.",
+      "implementorVersion" : "Acme-21.0.4",
+      "version" : "21.0.4",
+      "versionString" : "21.0.4",
+      "runtimeVersion" : null,
+      "javaVersionDate" : "2024-07-16",
+      "buildType" : null,
+      "javaTm" : null,
+      "identifiedFrom" : "RELEASE_FILE",
+      "bundledInside" : null,
+      "classification" : {
+        "status" : "UNKNOWN",
+        "severity" : "UNKNOWN",
+        "confidence" : "VERIFIED",
+        "ruleId" : null,
+        "summary" : "JVMAudit does not recognise the vendor string 'Acme Java Systems Ltd.', so it will not guess at the licence.",
+        "remediation" : "Check the LICENSE file inside //opt//java//mystery-jdk, and please open an issue at https://github.com/VeliAliyev/jvmaudit with the contents of its release file so this vendor can be recognised.",
+        "flags" : [
+          "PRODUCT_UNIDENTIFIED"
+        ],
+        "releaseDate" : "2024-07-16",
+        "releaseDateSource" : "RELEASE_FILE",
+        "citations" : [
+          {
+            "id" : "oracle-faq",
+            "title" : "Oracle Java SE Licensing FAQ (updated 16 September 2025)",
+            "url" : "https://www.oracle.com/java/technologies/javase/jdk-faqs.html"
+          }
+        ]
+      }
+    },
+    {
+      "path" : "//opt//java//temurin-21",
+      "aliases" : [ ],
+      "sources" : [
+        "WELL_KNOWN_ROOT",
+        "JAVA_HOME"
+      ],
+      "product" : {
+        "id" : "temurin",
+        "displayName" : "Eclipse Temurin",
+        "vendor" : "Eclipse Adoptium",
+        "oracle" : false
+      },
+      "vendorString" : "Eclipse Adoptium",
+      "implementorVersion" : null,
+      "version" : "21.0.4",
+      "versionString" : "21.0.4",
+      "runtimeVersion" : null,
+      "javaVersionDate" : "2024-07-16",
+      "buildType" : null,
+      "javaTm" : false,
+      "identifiedFrom" : "RELEASE_FILE",
+      "bundledInside" : null,
+      "classification" : {
+        "status" : "FREE",
+        "severity" : "OK",
+        "confidence" : "VERIFIED",
+        "ruleId" : "third-party-open-source",
+        "summary" : "This is a non-Oracle OpenJDK distribution under an open source licence, so it carries no Oracle licence cost.",
+        "remediation" : null,
+        "flags" : [
+          "VENDOR_MATCH_UNCONFIRMED"
+        ],
+        "releaseDate" : "2024-07-16",
+        "releaseDateSource" : "RELEASE_FILE",
+        "citations" : [
+          {
+            "id" : "gplv2cpe",
+            "title" : "GNU General Public License v2 with the Classpath Exception",
+            "url" : "https://openjdk.org/legal/gplv2+ce.html"
+          },
+          {
+            "id" : "https://adoptium.net/docs/faq/",
+            "title" : "Adoptium FAQ - Temurin is GPLv2+CPE licensed",
+            "url" : "https://adoptium.net/docs/faq/"
+          }
+        ]
+      }
+    }
+  ],
+  "issues" : [
+    {
+      "level" : "WARNING",
+      "message" : "Only 12 of 340 running processes exposed their command line to this user. Run JVMAudit as administrator (Windows) or root (Linux and macOS) for complete coverage of running JVMs.",
+      "path" : null
+    }
+  ]
+}

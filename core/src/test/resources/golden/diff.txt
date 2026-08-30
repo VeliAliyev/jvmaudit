@@ -1,0 +1,16 @@
+Comparing build-agent-07 at 2026-08-23T09:00:00Z
+     with build-agent-07 at 2026-08-30T09:00:00Z
+
++ APPEARED    LEGACY_BCL  Oracle JDK / Oracle JRE 8u202
+              /opt/vendor-app/AcmeSuite/jre
++ APPEARED    ORACLE_FREE_NFTC  Oracle JDK / Oracle JRE 17.0.12
+              /opt/java/oracle-jdk-17.0.12
++ APPEARED    UNKNOWN  Acme Java Systems Ltd. 21.0.4
+              /opt/java/mystery-jdk
+~ CHANGED     version 21.0.3 -> 21.0.4
+              /opt/java/temurin-21
+
+3 appeared, 0 disappeared, 1 changed.
+
+An Oracle-licensed installation appeared, or an existing one moved to a paid
+licence. This is the case worth acting on.

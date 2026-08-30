@@ -11,9 +11,10 @@ import dev.jvmaudit.core.model.Product;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -91,18 +92,31 @@ public final class LicenseRulesEngine {
     if (rule.confidence() == Confidence.UNVERIFIED) {
       flags.add(ClassificationFlag.UNVERIFIED_RULE);
     }
+    if (product.matchConfidence() == Confidence.UNVERIFIED) {
+      // A distinct claim from the rule's confidence: "we are not certain this is Temurin" is not
+      // the same as "we are not certain Temurin is free", and reporting the second when only the
+      // first is true would undersell a verdict Oracle's own FAQ supports.
+      flags.add(ClassificationFlag.VENDOR_MATCH_UNCONFIRMED);
+    }
 
     // The rule's own sources come first; the product's provenance is appended so the reader can
-    // also check why JVMAudit decided this installation is that vendor's build.
-    Set<Citation> citations = new LinkedHashSet<>(rule.citations());
-    citations.addAll(product.citations());
+    // also check why JVMAudit decided this installation is that vendor's build. Deduplication is by
+    // URL rather than by object, because the same page is often cited from both places under
+    // different ids, and a report that lists one source twice looks careless.
+    Map<String, Citation> citations = new LinkedHashMap<>();
+    for (Citation citation : rule.citations()) {
+      citations.putIfAbsent(citation.url(), citation);
+    }
+    for (Citation citation : product.citations()) {
+      citations.putIfAbsent(citation.url(), citation);
+    }
 
     return new Classification(
         rule.status(),
         flags,
         rule.summary(),
-        List.copyOf(citations),
-        Confidence.min(rule.confidence(), product.matchConfidence()),
+        List.copyOf(citations.values()),
+        rule.confidence(),
         rule.id(),
         resolved.date(),
         resolved.source(),

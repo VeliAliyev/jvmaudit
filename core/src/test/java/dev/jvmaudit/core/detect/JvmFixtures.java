@@ -497,7 +497,14 @@ public final class JvmFixtures {
    * the launcher path it is asked to run. Anything it does not recognise fails the way a file that
    * is not really an executable fails.
    *
-   * @param homes planted homes, by the fixture that produced them
+   * <p>Lookup is by canonical path, because the scanner canonicalises before it identifies and the
+   * two spellings of a temporary directory differ on two of the three supported platforms: macOS
+   * resolves {@code /var/folders/...} to {@code /private/var/folders/...}, and a Windows runner's
+   * {@code RUNNER~1} short name resolves to its long form. Comparing raw paths passes on a
+   * developer machine and fails in CI.
+   *
+   * @param homes planted homes, by the fixture that produced them; read live, so a test may add to
+   *     it after building the runner
    * @return a runner that stands in for really executing the launchers
    */
   public static ProcessRunner versionRunner(Map<Path, Fixture> homes) {
@@ -506,13 +513,28 @@ public final class JvmFixtures {
         return new ProcessRunner.Result(-1, "", "", false, "unexpected command " + command);
       }
       Path launcher = Path.of(command.get(0));
-      Path home = launcher.getParent() == null ? null : launcher.getParent().getParent();
-      Fixture fixture = home == null ? null : homes.get(home);
+      Path bin = launcher.getParent();
+      Path home = bin == null ? null : bin.getParent();
+      Fixture fixture = home == null ? null : lookUp(homes, home);
       if (fixture == null) {
         return new ProcessRunner.Result(-1, "", "", false, "Cannot run program " + command.get(0));
       }
       return new ProcessRunner.Result(0, fixture.versionOutput(), "", false, null);
     };
+  }
+
+  private static Fixture lookUp(Map<Path, Fixture> homes, Path home) {
+    Fixture direct = homes.get(home);
+    if (direct != null) {
+      return direct;
+    }
+    Path canonical = JvmHomes.canonical(home);
+    for (Map.Entry<Path, Fixture> entry : homes.entrySet()) {
+      if (JvmHomes.canonical(entry.getKey()).equals(canonical)) {
+        return entry.getValue();
+      }
+    }
+    return null;
   }
 
   /** A runner that always times out, for testing the timeout path. */

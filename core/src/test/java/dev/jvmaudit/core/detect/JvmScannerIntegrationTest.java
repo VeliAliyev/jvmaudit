@@ -242,6 +242,59 @@ class JvmScannerIntegrationTest {
   }
 
   @Test
+  void identifiesInstallationsPlantedUnderANonCanonicalPath() throws IOException {
+    // Regression test for a CI failure a developer machine could not reproduce. On macOS a
+    // temporary directory is handed out as /var/folders/... but canonicalises to
+    // /private/var/folders/..., and on a Windows runner the RUNNER~1 short name canonicalises to
+    // its long form. The scanner canonicalises before identifying, so anything that keyed off the
+    // path as it was handed out - as the fixture runner did - silently stopped matching, and every
+    // Oracle installation fell back to UNKNOWN. Planting through a symbolic link recreates exactly
+    // that: the planted path and the canonical path are different spellings of one directory.
+    Path link = estate.getParent().resolve(estate.getFileName() + "-link");
+    try {
+      Files.createSymbolicLink(link, estate);
+    } catch (IOException | UnsupportedOperationException e) {
+      assumeThat(false)
+          .as("this machine cannot create symbolic links: %s", e.getMessage())
+          .isTrue();
+      return;
+    }
+    assertThat(link).isNotEqualTo(JvmHomes.canonical(link));
+
+    // Plant through the link, so the keys of the fixture map are NOT canonical paths.
+    Map<Path, Fixture> viaLink = new HashMap<>();
+    for (Fixture fixture : JvmFixtures.catalogue()) {
+      viaLink.put(JvmFixtures.plant(link, fixture, "linked-" + fixture.id()), fixture);
+    }
+
+    ScanResult result =
+        new JvmScanner(
+                List.of(new ExplicitPathLocator()),
+                new JvmIdentifier(ENGINE.ruleSet().products(), JvmFixtures.versionRunner(viaLink)),
+                ENGINE)
+            .scan(
+                ScanOptions.builder()
+                    .paths(List.of(link))
+                    .includeWellKnownRoots(false)
+                    .includeEnvironment(false)
+                    .includeRegistry(false)
+                    .includeRunningProcesses(false)
+                    .execTimeout(JvmFixtures.execTimeout())
+                    .build());
+
+    Map<Path, DetectedJvm> byPath =
+        result.jvms().stream().collect(Collectors.toMap(DetectedJvm::path, jvm -> jvm));
+    viaLink.forEach(
+        (home, fixture) -> {
+          DetectedJvm found = byPath.get(JvmHomes.canonical(home));
+          assertThat(found).as("%s was not found through the link", fixture.id()).isNotNull();
+          assertThat(found.classification().status())
+              .as("%s classified wrongly when planted under a non-canonical path", fixture.id())
+              .isEqualTo(fixture.expectedStatus());
+        });
+  }
+
+  @Test
   void ordersTheMostUrgentFindingsFirst() {
     ScanResult result = scanner().scan(options());
 
@@ -315,7 +368,9 @@ class JvmScannerIntegrationTest {
             .orElseThrow();
 
     assertThat(found.fingerprint().isBundled()).isTrue();
-    assertThat(found.fingerprint().bundledInside()).isEqualTo(appDirectory);
+    assertThat(found.fingerprint().bundledInside())
+        .as("reported against the canonical path, as every path in a scan result is")
+        .isEqualTo(JvmHomes.canonical(appDirectory));
     assertThat(found.classification().flags()).contains(ClassificationFlag.POSSIBLY_VENDOR_BUNDLED);
     assertThat(ClassificationFlag.POSSIBLY_VENDOR_BUNDLED.description())
         .as("the wording must never assert that money is owed")

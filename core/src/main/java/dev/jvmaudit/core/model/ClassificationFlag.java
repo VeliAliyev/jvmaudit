@@ -26,6 +26,15 @@ public enum ClassificationFlag {
   /** The build's release date could not be determined, and the rule needed it. */
   DATE_UNKNOWN(Severity.UNKNOWN, "The build's release date could not be determined"),
 
+  /**
+   * The vendor string this installation was recognised by has not yet been confirmed against a real
+   * build of that distribution. The licence rule itself may still be solidly sourced - these are
+   * two different claims and JVMAudit must not present one as the other.
+   */
+  VENDOR_MATCH_UNCONFIRMED(
+      Severity.OK,
+      "Recognised from a vendor string JVMAudit has not yet confirmed against a real build"),
+
   /** The rule that produced this result is an inference, not a quotation from a primary source. */
   UNVERIFIED_RULE(
       Severity.REVIEW, "This rule is JVMAudit's inference, not a quoted Oracle statement"),

@@ -9,14 +9,16 @@ name: JDK artifact survey
 #
 #   1. the SOURCE field - an Oracle JDK appears to carry a second "open:git:" component where an
 #      Oracle OpenJDK build carries only ".:git:";
-#   2. the licence text shipped in the installation root - Oracle JDK ships the NFTC or OTN text,
-#      Oracle OpenJDK ships GPLv2 with the Classpath Exception.
+#   2. the licence shipped in the installation ROOT - Oracle JDK ships a LICENSE there carrying the
+#      NFTC or OTN text, while Oracle's OpenJDK builds ship none there at all, only
+#      legal/<module>/LICENSE under GPLv2. Absence is itself the signal.
 #
-# Neither is encoded in rules/vendors.yaml until this job shows them holding across at least three
+# Neither is encoded in rules/vendors.yaml until this job shows both holding across at least three
 # versions per family AND agreeing with each other. Until then exec stays the discriminator.
 #
-# Everything downloaded here is fetched through the vendors' own GitHub Actions, under the licence
-# each vendor publishes it under. Oracle JDK 21 and 25 are currently NFTC, which permits this.
+# Everything downloaded here is fetched from the vendors' own distribution points, under the licence
+# each vendor publishes it under. Oracle JDK 21, 25 and 26 are currently NFTC, which permits this;
+# the Oracle OpenJDK builds are GPLv2+CPE.
 #
 # Manual only: it downloads gigabytes and does not belong in the per-push build.
 
@@ -27,34 +29,73 @@ permissions:
   contents: read
 
 jobs:
-  oracle:
-    name: Oracle ${{ matrix.website }} ${{ matrix.release }}
+  oracle-jdk:
+    name: Oracle JDK ${{ matrix.release }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # Three versions per family, as required before either discriminator may be encoded.
-        website: [ oracle.com, jdk.java.net ]
+        # Three versions, as directed. These are the releases oracle.com currently serves under the
+        # NFTC; 8, 11 and 17 are OTN and would need an accepted licence agreement to download.
         release: [ '21', '25', '26' ]
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Oracle JDK ${{ matrix.release }} from ${{ matrix.website }}
+      - name: Set up Oracle JDK ${{ matrix.release }} from oracle.com
         id: setup
         continue-on-error: true
         uses: oracle-actions/setup-java@v1
         with:
-          website: ${{ matrix.website }}
+          website: oracle.com
           release: ${{ matrix.release }}
 
       - name: Record what this installation says about itself
         if: steps.setup.outcome == 'success'
-        run: ./.github/scripts/survey-jdk.sh "oracle-${{ matrix.website }}-${{ matrix.release }}"
+        run: bash ./.github/scripts/survey-jdk.sh "oracle-jdk-${{ matrix.release }}"
 
       - uses: actions/upload-artifact@v5
         if: steps.setup.outcome == 'success'
         with:
-          name: survey-oracle-${{ matrix.website }}-${{ matrix.release }}
+          name: survey-oracle-jdk-${{ matrix.release }}
+          path: survey/
+          if-no-files-found: warn
+
+  oracle-openjdk:
+    name: Oracle OpenJDK ${{ matrix.id }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # jdk.java.net serves only the current release, so the archived GA builds are named by URI.
+        # These are the same version lines as the Oracle JDK side above, so the two families are
+        # compared like for like. URIs verified against https://jdk.java.net/archive/ on 2026-08-30.
+        include:
+          - id: '17.0.2'
+            uri: https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_linux-x64_bin.tar.gz
+          - id: '21.0.2'
+            uri: https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-x64_bin.tar.gz
+          - id: '25.0.2'
+            uri: https://download.java.net/java/GA/jdk25.0.2/b1e0dfa218384cb9959bdcb897162d4e/10/GPL/openjdk-25.0.2_linux-x64_bin.tar.gz
+          - id: '26.0.2'
+            uri: https://download.java.net/java/GA/jdk26.0.2/818d462d89b645c7a1aad49066c454e5/10/GPL/openjdk-26.0.2_linux-x64_bin.tar.gz
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Oracle OpenJDK ${{ matrix.id }}
+        id: setup
+        continue-on-error: true
+        uses: oracle-actions/setup-java@v1
+        with:
+          uri: ${{ matrix.uri }}
+
+      - name: Record what this installation says about itself
+        if: steps.setup.outcome == 'success'
+        run: bash ./.github/scripts/survey-jdk.sh "oracle-openjdk-${{ matrix.id }}"
+
+      - uses: actions/upload-artifact@v5
+        if: steps.setup.outcome == 'success'
+        with:
+          name: survey-oracle-openjdk-${{ matrix.id }}
           path: survey/
           if-no-files-found: warn
 
@@ -64,16 +105,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distribution: [ temurin, corretto, zulu, microsoft, liberica, semeru, sapmachine, dragonwell, oracle ]
+        distribution: [ temurin, corretto, zulu, microsoft, liberica, semeru, sapmachine, dragonwell ]
         version: [ '8', '11', '17', '21' ]
         exclude:
-          # Distributions that publish no build for that line.
+          # Combinations the distribution does not publish.
           - { distribution: microsoft, version: '8' }
           - { distribution: microsoft, version: '11' }
           - { distribution: sapmachine, version: '8' }
           - { distribution: dragonwell, version: '21' }
-          - { distribution: oracle, version: '8' }
-          - { distribution: oracle, version: '11' }
     steps:
       - uses: actions/checkout@v5
 
@@ -87,7 +126,7 @@ jobs:
 
       - name: Record what this installation says about itself
         if: steps.setup.outcome == 'success'
-        run: ./.github/scripts/survey-jdk.sh "${{ matrix.distribution }}-${{ matrix.version }}"
+        run: bash ./.github/scripts/survey-jdk.sh "${{ matrix.distribution }}-${{ matrix.version }}"
 
       - uses: actions/upload-artifact@v5
         if: steps.setup.outcome == 'success'
@@ -99,7 +138,7 @@ jobs:
   report:
     name: Compare and report
     runs-on: ubuntu-latest
-    needs: [ oracle, vendors ]
+    needs: [ oracle-jdk, oracle-openjdk, vendors ]
     if: always()
     steps:
       - uses: actions/checkout@v5
