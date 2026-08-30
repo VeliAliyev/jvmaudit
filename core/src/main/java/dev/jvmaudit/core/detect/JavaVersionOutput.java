@@ -59,7 +59,9 @@ public record JavaVersionOutput(
         versionString = between(line, '"', '"');
         releaseDate = trailingDate(line);
       }
-      if (runtimeLine == null && line.contains("Runtime Environment")) {
+      // "Runtime", not "Runtime Environment": IBM Semeru prints "IBM Semeru Runtime Open Edition",
+      // and a survey of real builds found that spelling is not unique to IBM's older releases.
+      if (runtimeLine == null && line.contains("Runtime")) {
         runtimeLine = line;
         if (line.contains(JAVA_TM_RUNTIME)) {
           isJavaTm = Boolean.TRUE;
@@ -69,12 +71,15 @@ public record JavaVersionOutput(
       }
     }
 
-    // Some very old or unusual builds print no Runtime Environment line at all; fall back to the
-    // whole output, but only on the exact "Java(TM)" spelling, never on "Java HotSpot(TM)".
+    // Some builds name themselves in a way that identifies neither family on the runtime line -
+    // "IBM Semeru Runtime Open Edition" says neither Java(TM) nor OpenJDK. Fall back to the whole
+    // output, on the exact "Java(TM)" spelling only, never on "Java HotSpot(TM)", which free builds
+    // print too. The OpenJDK check is case-insensitive because the first line is lowercase
+    // ("openjdk version \"1.8.0_504\"") while the runtime line is not.
     if (isJavaTm == null) {
       if (output.contains("Java(TM)")) {
         isJavaTm = Boolean.TRUE;
-      } else if (output.contains("OpenJDK")) {
+      } else if (output.toLowerCase(java.util.Locale.ROOT).contains("openjdk")) {
         isJavaTm = Boolean.FALSE;
       }
     }

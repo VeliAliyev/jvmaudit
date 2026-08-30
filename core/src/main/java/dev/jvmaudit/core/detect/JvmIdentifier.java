@@ -64,7 +64,15 @@ public final class JvmIdentifier {
     LocalDate versionDate = release.javaVersionDate().orElse(null);
     String runtimeVersion = release.javaRuntimeVersion();
 
-    Optional<Product> product = catalog.resolve(implementor, implementorVersion, null, null);
+    // The licence the installation ships with itself, read straight off disk. Together with the
+    // SOURCE field this identifies an Oracle build without running anything - validated against
+    // three Oracle JDK and four Oracle OpenJDK releases before being relied on.
+    String licenseKind = LicenseText.of(home).map(Enum::name).orElse(null);
+
+    Optional<Product> product =
+        catalog.resolve(
+            new ProductCatalog.Evidence(
+                implementor, implementorVersion, null, null, release.source(), licenseKind));
 
     String runtimeName = null;
     Boolean isJavaTm = null;
@@ -83,7 +91,15 @@ public final class JvmIdentifier {
         if (versionDate == null) {
           versionDate = output.releaseDate();
         }
-        product = catalog.resolve(implementor, implementorVersion, runtimeName, isJavaTm);
+        product =
+            catalog.resolve(
+                new ProductCatalog.Evidence(
+                    implementor,
+                    implementorVersion,
+                    runtimeName,
+                    isJavaTm,
+                    release.source(),
+                    licenseKind));
       }
     }
 
@@ -108,6 +124,7 @@ public final class JvmIdentifier {
         .javaTm(isJavaTm)
         .buildType(release.buildType())
         .sourceRepositories(release.source())
+        .licenseKind(licenseKind)
         .source(source)
         .build();
   }

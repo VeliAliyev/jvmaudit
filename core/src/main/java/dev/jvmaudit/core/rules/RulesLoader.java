@@ -50,6 +50,13 @@ public final class RulesLoader {
 
   private static final String CLASSPATH_ROOT = "/rules/";
 
+  /**
+   * The licence names a match condition may use. Kept as strings rather than importing the detect
+   * package, so that the rules layer does not depend on the detection layer.
+   */
+  private static final List<String> KNOWN_LICENSE_KINDS =
+      List.of("NFTC", "OTN", "GFTC", "GPLV2", "UNRECOGNISED");
+
   private RulesLoader() {}
 
   /**
@@ -170,7 +177,10 @@ public final class RulesLoader {
               string(entry, "implementor"),
               string(entry, "implementorVersion"),
               string(entry, "runtimeName"),
-              (Boolean) entry.get("requiresJavaTm"));
+              (Boolean) entry.get("requiresJavaTm"),
+              string(entry, "sourceContains"),
+              string(entry, "sourceExcludes"),
+              licenseKinds(entry.get("licenseKind"), productId));
       if (condition.isEmpty()) {
         throw new RuleDataException(
             "Product '"
@@ -184,6 +194,34 @@ public final class RulesLoader {
       throw new RuleDataException("Product '" + productId + "' states no match conditions.");
     }
     return conditions;
+  }
+
+  /**
+   * Parses the {@code licenseKind} condition, which accepts either one licence name or a list of
+   * them. The names must be ones {@code LicenseText.Kind} knows, so a typo in the data file is
+   * rejected at load time rather than silently matching nothing.
+   */
+  private static List<String> licenseKinds(Object node, String productId) {
+    if (node == null) {
+      return List.of();
+    }
+    List<Object> raw =
+        node instanceof List ? asList(node, "licenseKind of " + productId) : List.of(node);
+    List<String> kinds = new ArrayList<>(raw.size());
+    for (Object item : raw) {
+      String name = String.valueOf(item).trim().toUpperCase(Locale.ROOT);
+      if (!KNOWN_LICENSE_KINDS.contains(name)) {
+        throw new RuleDataException(
+            "Product '"
+                + productId
+                + "' names an unknown licenseKind '"
+                + item
+                + "'. Known: "
+                + String.join(", ", KNOWN_LICENSE_KINDS));
+      }
+      kinds.add(name);
+    }
+    return kinds;
   }
 
   private static List<Citation> citations(Object node, String file, String owner) {

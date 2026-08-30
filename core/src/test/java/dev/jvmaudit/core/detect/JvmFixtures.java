@@ -465,6 +465,40 @@ public final class JvmFixtures {
   }
 
   /**
+   * Writes a licence file into a planted installation, where a real distribution keeps it.
+   *
+   * @param home the JVM home
+   * @param where {@code root} for a LICENSE in the installation root, {@code legal} for
+   *     legal/java.base/LICENSE, which is where the tar.gz builds keep it
+   * @param text the licence text
+   * @return the home
+   */
+  public static Path plantLicense(Path home, String where, String text) {
+    try {
+      Path file =
+          "legal".equals(where)
+              ? home.resolve("legal").resolve("java.base").resolve("LICENSE")
+              : home.resolve("LICENSE");
+      Files.createDirectories(file.getParent());
+      Files.writeString(file, text, StandardCharsets.UTF_8);
+      return home;
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  /** The opening words of the licence Oracle JDK ships, as read from a real build. */
+  public static final String NFTC_TEXT =
+      "Your use of this Program is governed by the No-Fee Terms and Conditions set forth below,"
+          + " unless you have received this Program (alone or as part of another Oracle product)"
+          + " under an Oracle license agreement.";
+
+  /** The opening words of the licence Oracle's OpenJDK builds ship, as read from a real build. */
+  public static final String GPLV2_TEXT =
+      "The GNU General Public License (GPL)\n\nVersion 2, June 1991\n\n"
+          + "Copyright (C) 1989, 1991 Free Software Foundation, Inc.";
+
+  /**
    * Plants a JVM home with no release file at all, which forces identification by execution.
    *
    * @param home where to create it

@@ -34,8 +34,6 @@ UNKNOWN             Acme Java Systems Ltd.          21.0.4       /opt/java/myste
 FREE                Eclipse Temurin                 21.0.4       /opt/java/temurin-21
     This is a non-Oracle OpenJDK distribution under an open source licence, so it carries no Oracle
     licence cost.
-    note: Recognised from a vendor string JVMAudit has not yet confirmed against a real build. The
-    licence conclusion above is unaffected.
     source: https://openjdk.org/legal/gplv2+ce.html
     source: https://adoptium.net/docs/faq/
 

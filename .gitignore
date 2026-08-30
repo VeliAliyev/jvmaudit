@@ -10,3 +10,9 @@ target/
 /dist/
 __pycache__/
 *.pyc
+
+# Internal planning document. Deliberately untracked: it holds business strategy.
+jvmaudit-build-plan.md
+
+# Internal working notes and decision log. Untracked deliberately.
+docs/

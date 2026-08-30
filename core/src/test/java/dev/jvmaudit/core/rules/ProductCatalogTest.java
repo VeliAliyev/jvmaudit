@@ -75,10 +75,29 @@ class ProductCatalogTest {
 
   @Test
   void marksOnlyTheProductsConfirmedAgainstRealArtifactsAsVerified() {
+    // Promoted after the JDK artifact survey of 2026-08-30 downloaded real builds of each and
+    // confirmed the IMPLEMENTOR string. The four still unverified are the ones the survey could
+    // not obtain: no setup-java distribution publishes Red Hat, Tencent Kona, the retired
+    // AdoptOpenJDK, or either GraalVM edition.
     assertThat(CATALOG.products())
         .filteredOn(product -> product.matchConfidence() == Confidence.VERIFIED)
         .extracting(Product::id)
-        .containsExactlyInAnyOrder("oracle-jdk", "oracle-openjdk", "corretto");
+        .containsExactlyInAnyOrder(
+            "oracle-jdk",
+            "oracle-openjdk",
+            "temurin",
+            "corretto",
+            "zulu",
+            "microsoft",
+            "liberica",
+            "sapmachine",
+            "semeru",
+            "dragonwell");
+    assertThat(CATALOG.products())
+        .filteredOn(product -> product.matchConfidence() == Confidence.UNVERIFIED)
+        .extracting(Product::id)
+        .containsExactlyInAnyOrder(
+            "oracle-graalvm", "graalvm-ce", "adoptopenjdk", "redhat", "kona");
   }
 
   @Test

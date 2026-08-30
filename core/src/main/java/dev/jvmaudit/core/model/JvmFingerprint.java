@@ -24,6 +24,9 @@ import java.util.Objects;
  *     {@code OpenJDK}, null when unknown - the discriminator between Oracle JDK and Oracle OpenJDK
  * @param buildType the raw {@code BUILD_TYPE} field, or null
  * @param sourceRepositories the raw {@code SOURCE} field, or null
+ * @param licenseKind the licence the installation ships with itself, or null. With {@code
+ *     sourceRepositories} this forms the static discriminator between Oracle JDK and Oracle
+ *     OpenJDK, which the release file alone cannot separate.
  * @param source how this fingerprint was obtained
  * @param bundledInside the application directory this JVM appears to be bundled inside, or null
  */
@@ -40,6 +43,7 @@ public record JvmFingerprint(
     Boolean isJavaTm,
     String buildType,
     String sourceRepositories,
+    String licenseKind,
     FingerprintSource source,
     Path bundledInside) {
 
@@ -79,6 +83,7 @@ public record JvmFingerprint(
         isJavaTm,
         buildType,
         sourceRepositories,
+        licenseKind,
         source,
         directory);
   }
@@ -97,6 +102,7 @@ public record JvmFingerprint(
     private Boolean isJavaTm;
     private String buildType;
     private String sourceRepositories;
+    private String licenseKind;
     private FingerprintSource source = FingerprintSource.SUPPLIED;
     private Path bundledInside;
 
@@ -175,6 +181,12 @@ public record JvmFingerprint(
       return this;
     }
 
+    /** Sets the licence the installation ships with itself, by name. */
+    public Builder licenseKind(String value) {
+      this.licenseKind = value;
+      return this;
+    }
+
     /** Sets how this fingerprint was obtained. */
     public Builder source(FingerprintSource value) {
       this.source = value;
@@ -202,6 +214,7 @@ public record JvmFingerprint(
           isJavaTm,
           buildType,
           sourceRepositories,
+          licenseKind,
           source,
           bundledInside);
     }

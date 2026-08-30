@@ -4,6 +4,7 @@ import dev.jvmaudit.core.detect.JvmScanner;
 import dev.jvmaudit.core.detect.ScanOptions;
 import dev.jvmaudit.core.detect.ScanResult;
 import dev.jvmaudit.core.report.CsvReport;
+import dev.jvmaudit.core.report.EvidencePack;
 import dev.jvmaudit.core.report.HtmlReport;
 import dev.jvmaudit.core.report.JsonReport;
 import dev.jvmaudit.core.report.TableReport;
@@ -122,6 +123,14 @@ public final class ScanCommand implements Callable<Integer> {
           "Exit with code 1 when the scan finds: ${COMPLETION-CANDIDATES}. Default: none.")
   FailOn failOn = FailOn.NONE;
 
+  @Option(
+      names = "--evidence",
+      paramLabel = "<file.zip>",
+      description =
+          "Also write a zipped evidence pack: the findings, the human-readable report, the exact"
+              + " licence rules used, and a SHA-256 manifest of all of them.")
+  Path evidence;
+
   @Option(names = "--no-color", description = "Never colour the console output.")
   boolean noColor;
 
@@ -131,6 +140,17 @@ public final class ScanCommand implements Callable<Integer> {
   public Integer call() throws IOException {
     LicenseRulesEngine engine = LicenseRulesEngine.usingPackagedRules();
     ScanResult result = JvmScanner.forCurrentMachine(engine).scan(options());
+
+    if (evidence != null) {
+      EvidencePack.Written written = EvidencePack.write(evidence, result, engine.ruleSet());
+      PrintWriter stdout = spec.commandLine().getOut();
+      stdout.println(
+          "Evidence pack written to "
+              + written.file().toAbsolutePath()
+              + " ("
+              + written.entries().size()
+              + " files, SHA-256 manifest)");
+    }
 
     String rendered = render(result, engine.ruleSet().disclaimer());
     if (out == null) {

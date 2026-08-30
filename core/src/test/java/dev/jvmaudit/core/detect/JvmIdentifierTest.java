@@ -207,6 +207,103 @@ class JvmIdentifierTest {
   }
 
   @Test
+  void tellsOracleJdkFromOracleOpenJdkWithoutRunningAnything() {
+    // The static discriminator, validated by the JDK artifact survey of 2026-08-30 across three
+    // Oracle JDK and four Oracle OpenJDK releases: an Oracle JDK's SOURCE carries a second
+    // "open:git:" component AND it ships the NFTC or OTN text; an Oracle OpenJDK build has neither.
+    Path oracleJdk =
+        JvmFixtures.plantJvm(
+            temp.resolve("oracle-jdk"),
+            Map.of(
+                "IMPLEMENTOR", "Oracle Corporation",
+                "JAVA_VERSION", "21.0.8",
+                "JAVA_VERSION_DATE", "2025-07-15",
+                "SOURCE", ".:git:86c757ff111e open:git:916e4b3a9b29"));
+    JvmFixtures.plantLicense(oracleJdk, "legal", JvmFixtures.NFTC_TEXT);
+
+    Path oracleOpenJdk =
+        JvmFixtures.plantJvm(
+            temp.resolve("oracle-openjdk"),
+            Map.of(
+                "IMPLEMENTOR", "Oracle Corporation",
+                "JAVA_VERSION", "21.0.2",
+                "JAVA_VERSION_DATE", "2024-01-16",
+                "SOURCE", ".:git:289f7a7ab6f5"));
+    JvmFixtures.plantLicense(oracleOpenJdk, "legal", JvmFixtures.GPLV2_TEXT);
+
+    ScanOptions noExec = ScanOptions.builder().execPolicy(ScanOptions.ExecPolicy.NEVER).build();
+
+    JvmFingerprint paid =
+        new JvmIdentifier(CATALOG, refusing()).identify(oracleJdk, noExec, issues::add);
+    JvmFingerprint free =
+        new JvmIdentifier(CATALOG, refusing()).identify(oracleOpenJdk, noExec, issues::add);
+
+    assertThat(paid.product()).extracting(Product::id).isEqualTo("oracle-jdk");
+    assertThat(paid.licenseKind()).isEqualTo("NFTC");
+    assertThat(paid.isJavaTm()).as("nothing was executed, so this stays unknown").isNull();
+
+    assertThat(free.product()).extracting(Product::id).isEqualTo("oracle-openjdk");
+    assertThat(free.licenseKind()).isEqualTo("GPLV2");
+    assertThat(issues).as("no launcher was run, so there is nothing to report").isEmpty();
+  }
+
+  @Test
+  void needsBothHalvesOfTheStaticDiscriminatorBeforeItNamesAnOracleBuild() {
+    // Either half alone is not enough. This is the combined rule the directive asked for.
+    Path sourceOnly =
+        JvmFixtures.plantJvm(
+            temp.resolve("source-only"),
+            Map.of(
+                "IMPLEMENTOR", "Oracle Corporation",
+                "JAVA_VERSION", "21.0.8",
+                "SOURCE", ".:git:aaaa open:git:bbbb"));
+
+    Path licenceOnly =
+        JvmFixtures.plantJvm(
+            temp.resolve("licence-only"),
+            Map.of("IMPLEMENTOR", "Oracle Corporation", "JAVA_VERSION", "21.0.8"));
+    JvmFixtures.plantLicense(licenceOnly, "legal", JvmFixtures.NFTC_TEXT);
+
+    ScanOptions noExec = ScanOptions.builder().execPolicy(ScanOptions.ExecPolicy.NEVER).build();
+
+    assertThat(
+            new JvmIdentifier(CATALOG, refusing())
+                .identify(sourceOnly, noExec, issues::add)
+                .product())
+        .as("an open:git: SOURCE with no licence evidence is not enough")
+        .isNull();
+    assertThat(
+            new JvmIdentifier(CATALOG, refusing())
+                .identify(licenceOnly, noExec, issues::add)
+                .product())
+        .as("NFTC text with no SOURCE field is not enough")
+        .isNull();
+  }
+
+  @Test
+  void readsALicenceFromTheInstallationRootAsWellAsFromLegal() {
+    // Oracle's Windows installer puts LICENSE in the root; the tar.gz builds only use legal/.
+    Path home =
+        JvmFixtures.plantJvm(
+            temp.resolve("windows-style"),
+            Map.of(
+                "IMPLEMENTOR", "Oracle Corporation",
+                "JAVA_VERSION", "17.0.11",
+                "SOURCE", ".:git:0531bcd287a8 open:git:38d1cef19db8"));
+    JvmFixtures.plantLicense(home, "root", JvmFixtures.NFTC_TEXT);
+
+    JvmFingerprint fingerprint =
+        new JvmIdentifier(CATALOG, refusing())
+            .identify(
+                home,
+                ScanOptions.builder().execPolicy(ScanOptions.ExecPolicy.NEVER).build(),
+                issues::add);
+
+    assertThat(fingerprint.licenseKind()).isEqualTo("NFTC");
+    assertThat(fingerprint.product()).extracting(Product::id).isEqualTo("oracle-jdk");
+  }
+
+  @Test
   void keepsTheRawFieldsThatMayLaterIdentifyOracleBuildsWithoutRunningThem() {
     // The SOURCE field is the candidate static discriminator; it is recorded but not yet acted on.
     Path home =

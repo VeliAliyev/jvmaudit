@@ -168,6 +168,25 @@ class ReportGoldenTest {
             "/opt/java/temurin-21".replace('/', java.io.File.separatorChar));
   }
 
+  @Test
+  void normalisesBothSpellingsOfAWindowsPathToTheSameThing() {
+    // Regression: this passed on Windows and failed on Linux and macOS. JSON escapes a Windows
+    // path as "\\\\opt\\\\java", and collapsing it character by character produced "//opt//java",
+    // which no other platform could ever match. Both spellings must land on the same text.
+    // One real backslash per separator: what Path.toString() gives on Windows.
+    String asWindowsRendersIt = "\\opt\\java\\jdk";
+    // Two real backslashes per separator: what JSON escaping turns that into.
+    String asJsonEscapesIt = "\\\\opt\\\\java\\\\jdk";
+    String asEveryoneElseRendersIt = "/opt/java/jdk";
+
+    assertThat(asWindowsRendersIt).hasSize(13);
+    assertThat(asJsonEscapesIt).hasSize(16);
+
+    assertThat(normalisePathSeparators(asWindowsRendersIt)).isEqualTo(asEveryoneElseRendersIt);
+    assertThat(normalisePathSeparators(asJsonEscapesIt)).isEqualTo(asEveryoneElseRendersIt);
+    assertThat(normalisePathSeparators(asEveryoneElseRendersIt)).isEqualTo(asEveryoneElseRendersIt);
+  }
+
   private static String disclaimer() {
     return SampleScans.engine().ruleSet().disclaimer();
   }
@@ -179,8 +198,15 @@ class ReportGoldenTest {
    * as {@code \opt\java\...} on Windows and {@code /opt/java/...} elsewhere. That is a property of
    * {@link Path}, not of the report, and it is the only thing here allowed to differ by platform.
    */
+  private static String normalisePathSeparators(String text) {
+    // The escaped pair is collapsed first. JSON renders a Windows path as "\\opt\\java", so
+    // replacing character by character would turn each of the two backslashes into a slash and
+    // produce "//opt//java" - which passed on Windows and failed on every other platform.
+    return text.replace("\\\\", "/").replace('\\', '/');
+  }
+
   private static void assertMatchesGolden(String name, String actual) {
-    String normalised = actual.replace('\\', '/');
+    String normalised = normalisePathSeparators(actual);
 
     if (Boolean.getBoolean("jvmaudit.golden.update")) {
       write(name, normalised);

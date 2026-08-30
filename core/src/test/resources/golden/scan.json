@@ -39,7 +39,7 @@
   },
   "jvms" : [
     {
-      "path" : "//opt//java//oracle-jdk-8u211",
+      "path" : "/opt/java/oracle-jdk-8u211",
       "aliases" : [ ],
       "sources" : [
         "WELL_KNOWN_ROOT",
@@ -91,7 +91,7 @@
       }
     },
     {
-      "path" : "//opt//vendor-app//AcmeSuite//jre",
+      "path" : "/opt/vendor-app/AcmeSuite/jre",
       "aliases" : [ ],
       "sources" : [
         "DEEP_SCAN"
@@ -111,7 +111,7 @@
       "buildType" : null,
       "javaTm" : true,
       "identifiedFrom" : "RELEASE_FILE",
-      "bundledInside" : "//opt//vendor-app//AcmeSuite",
+      "bundledInside" : "/opt/vendor-app/AcmeSuite",
       "classification" : {
         "status" : "LEGACY_BCL",
         "severity" : "REVIEW",
@@ -150,7 +150,7 @@
       }
     },
     {
-      "path" : "//opt//java//oracle-jdk-17.0.12",
+      "path" : "/opt/java/oracle-jdk-17.0.12",
       "aliases" : [ ],
       "sources" : [
         "WELL_KNOWN_ROOT"
@@ -203,7 +203,7 @@
       }
     },
     {
-      "path" : "//opt//java//mystery-jdk",
+      "path" : "/opt/java/mystery-jdk",
       "aliases" : [ ],
       "sources" : [
         "DEEP_SCAN"
@@ -225,7 +225,7 @@
         "confidence" : "VERIFIED",
         "ruleId" : null,
         "summary" : "JVMAudit does not recognise the vendor string 'Acme Java Systems Ltd.', so it will not guess at the licence.",
-        "remediation" : "Check the LICENSE file inside //opt//java//mystery-jdk, and please open an issue at https://github.com/VeliAliyev/jvmaudit with the contents of its release file so this vendor can be recognised.",
+        "remediation" : "Check the LICENSE file inside /opt/java/mystery-jdk, and please open an issue at https://github.com/VeliAliyev/jvmaudit with the contents of its release file so this vendor can be recognised.",
         "flags" : [
           "PRODUCT_UNIDENTIFIED"
         ],
@@ -241,7 +241,7 @@
       }
     },
     {
-      "path" : "//opt//java//temurin-21",
+      "path" : "/opt/java/temurin-21",
       "aliases" : [ ],
       "sources" : [
         "WELL_KNOWN_ROOT",
@@ -270,9 +270,7 @@
         "ruleId" : "third-party-open-source",
         "summary" : "This is a non-Oracle OpenJDK distribution under an open source licence, so it carries no Oracle licence cost.",
         "remediation" : null,
-        "flags" : [
-          "VENDOR_MATCH_UNCONFIRMED"
-        ],
+        "flags" : [ ],
         "releaseDate" : "2024-07-16",
         "releaseDateSource" : "RELEASE_FILE",
         "citations" : [

@@ -76,11 +76,11 @@ def licence_sections(licence_text: str) -> list[tuple[str, str]]:
 
 
 def root_licence_kind(licence_text: str) -> str:
-    """The licence in the installation ROOT, which is where the two Oracle families differ.
+    """The licence in the installation ROOT, if it ships one there.
 
-    Oracle JDK ships a LICENSE in the root carrying the NFTC or OTN text. Oracle's OpenJDK builds
-    ship none there at all - theirs sit under legal/<module>/LICENSE and are GPLv2 with the
-    Classpath Exception. "absent" is therefore a meaningful answer, not a failure to read.
+    Oracle's Windows installer puts a LICENSE in the installation root; the tar.gz distributions
+    of both families put nothing there at all. So "absent" here is a property of the packaging,
+    not of the product, and it cannot be used to tell the two families apart on its own.
     """
     for path, body in licence_sections(licence_text):
         normalised = path.replace("\\", "/")
@@ -90,11 +90,27 @@ def root_licence_kind(licence_text: str) -> str:
 
 
 def nested_licence_kind(licence_text: str) -> str:
+    """The licence under legal/<module>/LICENSE, which every distribution ships regardless of how
+    it was packaged. This is where the two Oracle families actually differ."""
     for path, body in licence_sections(licence_text):
         normalised = path.replace("\\", "/")
         if "/" in normalised and normalised.upper().endswith("LICENSE"):
             return classify_licence(body)
     return "absent"
+
+
+def effective_licence_kind(licence_text: str) -> str:
+    """The licence this installation actually ships, wherever it keeps it.
+
+    Prefers the installation root, because that is the copy a human opens first, and falls back to
+    legal/<module>/LICENSE, which is present in every distribution. Judging on the root alone was
+    the first attempt and it was wrong: the tar.gz builds of Oracle JDK ship no root LICENSE, so
+    the check reported "absent" for both families and separated nothing.
+    """
+    root = root_licence_kind(licence_text)
+    if root != "absent" and root != "unrecognised":
+        return root
+    return nested_licence_kind(licence_text)
 
 
 def main(directory: str) -> int:
@@ -124,7 +140,8 @@ def main(directory: str) -> int:
             "version": version_output,
             "licence": licence_text,
             "java_tm": is_java_tm(version_output),
-            "licence_kind": root_licence_kind(licence_text),
+            "licence_kind": effective_licence_kind(licence_text),
+            "root_licence_kind": root_licence_kind(licence_text),
             "nested_licence_kind": nested_licence_kind(licence_text),
         }
 
@@ -200,31 +217,36 @@ def main(directory: str) -> int:
     lines += [
         "## Candidate discriminator 2: the licence text in the installation root",
         "",
-        "Oracle JDK ships a `LICENSE` in the installation root carrying the NFTC or OTN text;"
-        " Oracle's OpenJDK builds ship none there, only `legal/<module>/LICENSE` under GPLv2 with"
-        " the Classpath Exception. `absent` in the root column is therefore itself the signal.",
+        "Oracle JDK ships the NFTC or OTN text; Oracle's OpenJDK builds ship GPLv2 with the"
+        " Classpath Exception. Where that text lives depends on the packaging: the Windows"
+        " installer puts a LICENSE in the installation root, the tar.gz builds put nothing there"
+        " and keep it under legal/<module>/LICENSE. The verdict below is judged on whichever copy"
+        " is present, which is the `effective` column.",
         "",
-        "| id | family | root LICENSE | legal/*/LICENSE |",
-        "|---|---|---|---|",
+        "| id | family | root LICENSE | legal/*/LICENSE | effective |",
+        "|---|---|---|---|---|",
     ]
     for identifier, data in {**oracle_jdk, **oracle_openjdk}.items():
         family = "Oracle JDK" if data["java_tm"] else "Oracle OpenJDK"
         lines.append(
-            f"| `{identifier}` | {family} | `{data['licence_kind']}` |"
-            f" `{data['nested_licence_kind']}` |"
+            f"| `{identifier}` | {family} | `{data['root_licence_kind']}` |"
+            f" `{data['nested_licence_kind']}` | `{data['licence_kind']}` |"
         )
     lines.append("")
-    licence_holds = all(
-        d["licence_kind"] in ("NFTC", "OTN") for d in oracle_jdk.values()
-    ) and all(d["licence_kind"] in ("absent", "GPLv2") for d in oracle_openjdk.values())
+    licence_holds = (
+        bool(oracle_jdk)
+        and bool(oracle_openjdk)
+        and all(d["licence_kind"] in ("NFTC", "OTN") for d in oracle_jdk.values())
+        and all(d["licence_kind"] == "GPLv2" for d in oracle_openjdk.values())
+    )
     if not enough:
         licence_verdict = (
             f"INSUFFICIENT DATA - need at least {MIN_SAMPLES_PER_FAMILY} samples per family"
         )
     elif licence_holds:
         licence_verdict = (
-            "VALIDATED - every Oracle JDK ships an NFTC/OTN LICENSE in its root and no Oracle"
-            " OpenJDK build does"
+            "VALIDATED - every Oracle JDK ships the NFTC or OTN text and every Oracle OpenJDK"
+            " build ships GPLv2"
         )
     else:
         licence_verdict = "REJECTED - the licence text does not separate the two families"

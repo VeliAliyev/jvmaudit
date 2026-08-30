@@ -9,6 +9,12 @@
 #
 # Matching inputs (all optional, all case-insensitive):
 #   implementor          - the IMPLEMENTOR field of the JVM's `release` file, exact match
+#   sourceContains       - a substring the SOURCE field of the `release` file must contain
+#   sourceExcludes       - a substring the SOURCE field must NOT contain. The field must still be
+#                          present: a missing SOURCE proves nothing, so it never satisfies this.
+#   licenseKind          - the licence the installation ships with itself, read from its LICENSE
+#                          file or from legal/<module>/LICENSE. One of NFTC, OTN, GFTC, GPLV2,
+#                          UNRECOGNISED, or a list of them.
 #   implementorVersion   - a substring of IMPLEMENTOR_VERSION
 #   runtimeName          - a substring of the "... Runtime Environment ..." line of `java -version`
 #   requiresJavaTm       - true  => only matches a build whose `java -version` says "Java(TM)"
@@ -23,7 +29,7 @@
 #                real artifact. M2 confirms these against downloaded artifacts.
 
 schemaVersion: 1
-catalogVersion: "2026.08.30"
+catalogVersion: "2026.08.30b"
 
 products:
 
@@ -60,6 +66,14 @@ products:
       - implementor: "Oracle Corporation"
         requiresJavaTm: true
       - runtimeName: "Java(TM) SE Runtime Environment"
+      # Static alternative, needing nothing to be executed. BOTH halves must hold: an Oracle JDK is
+      # built from a closed superset of the open repository, so its SOURCE carries a second
+      # "open:git:" component, and it ships the NFTC or OTN text where an Oracle OpenJDK build
+      # ships GPLv2. Validated together across three Oracle JDK and four Oracle OpenJDK releases
+      # before being encoded - see docs/DECISIONS.md, M2b.
+      - implementor: "Oracle Corporation"
+        sourceContains: "open:git:"
+        licenseKind: [NFTC, OTN]
     matchConfidence: verified
     matchEvidence: >-
       Read from a real Oracle JDK 17.0.11 installation on 2026-08-30: release file has
@@ -76,6 +90,11 @@ products:
     match:
       - implementor: "Oracle Corporation"
         requiresJavaTm: false
+      # The mirror image of the Oracle JDK rule: a SOURCE that is present and carries no
+      # "open:git:" component, together with GPLv2 licence text.
+      - implementor: "Oracle Corporation"
+        sourceExcludes: "open:git:"
+        licenseKind: GPLV2
     matchConfidence: verified
     matchEvidence: >-
       Read from a real Oracle OpenJDK 21.0.2 installation on 2026-08-30: release file has
@@ -92,7 +111,10 @@ products:
     match:
       - implementor: "Eclipse Adoptium"
       - runtimeName: "Temurin"
-    matchConfidence: unverified
+    matchConfidence: verified
+    matchEvidence: >-
+      IMPLEMENTOR="Eclipse Adoptium" confirmed against real builds downloaded in the JDK artifact
+      survey of 2026-08-30 (temurin-8, -11, -17 and -21).
     citations:
       - title: "Adoptium FAQ - Temurin is GPLv2+CPE licensed"
         url: "https://adoptium.net/docs/faq/"
@@ -120,6 +142,9 @@ products:
     matchEvidence: >-
       Read from a real Amazon Corretto 17.0.13 installation on 2026-08-30: release file has
       IMPLEMENTOR="Amazon.com Inc." and IMPLEMENTOR_VERSION="Corretto-17.0.13.11.1".
+    matchEvidenceSurvey: >-
+      IMPLEMENTOR="Amazon.com Inc." confirmed against real builds downloaded in the JDK artifact
+      survey of 2026-08-30 (corretto-11, -17 and -21).
     citations:
       - title: "Amazon Corretto FAQs - no-cost, multiplatform, production-ready OpenJDK"
         url: "https://aws.amazon.com/corretto/faqs/"
@@ -131,7 +156,10 @@ products:
     match:
       - implementor: "Azul Systems, Inc."
       - runtimeName: "Zulu"
-    matchConfidence: unverified
+    matchConfidence: verified
+    matchEvidence: >-
+      IMPLEMENTOR="Azul Systems, Inc." confirmed against real builds downloaded in the JDK artifact
+      survey of 2026-08-30 (zulu-8, -11, -17 and -21).
     citations:
       - title: "Azul downloads - Zulu Builds of OpenJDK"
         url: "https://www.azul.com/downloads/"
@@ -143,7 +171,10 @@ products:
     match:
       - implementor: "Microsoft"
       - runtimeName: "Microsoft-"
-    matchConfidence: unverified
+    matchConfidence: verified
+    matchEvidence: >-
+      IMPLEMENTOR="Microsoft" confirmed against real builds downloaded in the JDK artifact
+      survey of 2026-08-30 (microsoft-17 and -21).
     citations:
       - title: "Microsoft Build of OpenJDK FAQ"
         url: "https://learn.microsoft.com/en-us/java/openjdk/faq"
@@ -167,7 +198,10 @@ products:
     match:
       - implementor: "BellSoft"
       - runtimeName: "Liberica"
-    matchConfidence: unverified
+    matchConfidence: verified
+    matchEvidence: >-
+      IMPLEMENTOR="BellSoft" confirmed against real builds downloaded in the JDK artifact
+      survey of 2026-08-30 (liberica-11, -17 and -21).
     citations:
       - title: "BellSoft Liberica JDK"
         url: "https://bell-sw.com/libericajdk/"
@@ -179,7 +213,10 @@ products:
     match:
       - implementor: "SAP SE"
       - runtimeName: "SapMachine"
-    matchConfidence: unverified
+    matchConfidence: verified
+    matchEvidence: >-
+      IMPLEMENTOR="SAP SE" confirmed against real builds downloaded in the JDK artifact
+      survey of 2026-08-30 (sapmachine-11, -17 and -21).
     citations:
       - title: "SapMachine LICENSE (GPLv2+CPE)"
         url: "https://github.com/SAP/SapMachine/blob/sapmachine/LICENSE"
@@ -191,7 +228,10 @@ products:
     match:
       - implementor: "IBM Corporation"
       - runtimeName: "IBM Semeru"
-    matchConfidence: unverified
+    matchConfidence: verified
+    matchEvidence: >-
+      IMPLEMENTOR="IBM Corporation" confirmed against real builds downloaded in the JDK artifact
+      survey of 2026-08-30 (semeru-8, -11, -17 and -21).
     citations:
       - title: "IBM Semeru Runtimes licensing"
         url: "https://www.ibm.com/support/pages/node/6451203"
@@ -203,7 +243,10 @@ products:
     match:
       - implementor: "Alibaba"
       - runtimeName: "Dragonwell"
-    matchConfidence: unverified
+    matchConfidence: verified
+    matchEvidence: >-
+      IMPLEMENTOR="Alibaba" confirmed against real builds downloaded in the JDK artifact
+      survey of 2026-08-30 (dragonwell-8, -11 and -17).
     citations:
       - title: "Alibaba Dragonwell (GPLv2+CPE)"
         url: "https://github.com/dragonwell-project/dragonwell21"
