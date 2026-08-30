@@ -1,0 +1,203 @@
+# JVMAudit product catalogue
+#
+# Maps what an installation reports about itself onto a product id. The license rules in
+# oracle-license-rules.yaml are written against these ids.
+#
+# Matching inputs (all optional, all case-insensitive):
+#   implementor          - the IMPLEMENTOR field of the JVM's `release` file, exact match
+#   implementorVersion   - a substring of IMPLEMENTOR_VERSION
+#   runtimeName          - a substring of the "... Runtime Environment ..." line of `java -version`
+#   requiresJavaTm       - true  => only matches a build whose `java -version` says "Java(TM)"
+#                          false => only matches a build known NOT to say "Java(TM)"
+#                          absent => not considered
+# A product matches when every condition it states is satisfied. Products are tried in the order
+# they appear here, and the first match wins, so put the specific ones first.
+#
+# matchConfidence records how the match strings themselves were established:
+#   verified   - read off a real installation or an official vendor document (see matchEvidence)
+#   unverified - taken from vendor documentation or community sources, not yet confirmed against a
+#                real artifact. M2 confirms these against downloaded artifacts.
+
+schemaVersion: 1
+catalogVersion: "2026.08.30"
+
+products:
+
+  - id: oracle-graalvm
+    displayName: "Oracle GraalVM"
+    vendor: "Oracle"
+    oracle: true
+    match:
+      implementor: "Oracle Corporation"
+      implementorVersion: "Oracle GraalVM"
+    matchConfidence: unverified
+    citations:
+      - title: "GraalVM Free Terms and Conditions (GFTC)"
+        url: "https://www.oracle.com/downloads/licenses/graal-free-license.html"
+
+  - id: graalvm-ce
+    displayName: "GraalVM Community Edition"
+    vendor: "GraalVM Community"
+    oracle: false
+    match:
+      implementorVersion: "GraalVM CE"
+    matchConfidence: unverified
+    citations:
+      - title: "GraalVM Community Edition builds (GPLv2+CPE)"
+        url: "https://github.com/graalvm/graalvm-ce-builds"
+
+  - id: oracle-jdk
+    displayName: "Oracle JDK / Oracle JRE"
+    vendor: "Oracle"
+    oracle: true
+    match:
+      implementor: "Oracle Corporation"
+      requiresJavaTm: true
+    matchConfidence: verified
+    matchEvidence: >-
+      Read from a real Oracle JDK 17.0.11 installation on 2026-08-30: release file has
+      IMPLEMENTOR="Oracle Corporation" with no IMPLEMENTOR_VERSION, and `java -version` prints
+      "Java(TM) SE Runtime Environment (build 17.0.11+7-LTS-207)".
+    citations:
+      - title: "Oracle Java SE Licensing FAQ"
+        url: "https://www.oracle.com/java/technologies/javase/jdk-faqs.html"
+
+  - id: oracle-openjdk
+    displayName: "Oracle OpenJDK build (jdk.java.net)"
+    vendor: "Oracle"
+    oracle: true
+    match:
+      implementor: "Oracle Corporation"
+      requiresJavaTm: false
+    matchConfidence: verified
+    matchEvidence: >-
+      Read from a real Oracle OpenJDK 21.0.2 installation on 2026-08-30: release file has
+      IMPLEMENTOR="Oracle Corporation" with no IMPLEMENTOR_VERSION, and `java -version` prints
+      "OpenJDK Runtime Environment (build 21.0.2+13-58)".
+    citations:
+      - title: "Oracle Java SE Licensing FAQ - Oracle OpenJDK releases are GPLv2+CPE"
+        url: "https://www.oracle.com/java/technologies/javase/jdk-faqs.html"
+
+  - id: temurin
+    displayName: "Eclipse Temurin"
+    vendor: "Eclipse Adoptium"
+    oracle: false
+    match:
+      implementor: "Eclipse Adoptium"
+    matchConfidence: unverified
+    citations:
+      - title: "Adoptium FAQ - Temurin is GPLv2+CPE licensed"
+        url: "https://adoptium.net/docs/faq/"
+
+  - id: adoptopenjdk
+    displayName: "AdoptOpenJDK (legacy)"
+    vendor: "AdoptOpenJDK"
+    oracle: false
+    match:
+      implementor: "AdoptOpenJDK"
+    matchConfidence: unverified
+    citations:
+      - title: "Adoptium FAQ - AdoptOpenJDK is the predecessor of Eclipse Temurin"
+        url: "https://adoptium.net/docs/faq/"
+
+  - id: corretto
+    displayName: "Amazon Corretto"
+    vendor: "Amazon"
+    oracle: false
+    match:
+      implementor: "Amazon.com Inc."
+    matchConfidence: verified
+    matchEvidence: >-
+      Read from a real Amazon Corretto 17.0.13 installation on 2026-08-30: release file has
+      IMPLEMENTOR="Amazon.com Inc." and IMPLEMENTOR_VERSION="Corretto-17.0.13.11.1".
+    citations:
+      - title: "Amazon Corretto FAQs - no-cost, multiplatform, production-ready OpenJDK"
+        url: "https://aws.amazon.com/corretto/faqs/"
+
+  - id: zulu
+    displayName: "Azul Zulu"
+    vendor: "Azul Systems"
+    oracle: false
+    match:
+      implementor: "Azul Systems, Inc."
+    matchConfidence: unverified
+    citations:
+      - title: "Azul downloads - Zulu Builds of OpenJDK"
+        url: "https://www.azul.com/downloads/"
+
+  - id: microsoft
+    displayName: "Microsoft Build of OpenJDK"
+    vendor: "Microsoft"
+    oracle: false
+    match:
+      implementor: "Microsoft"
+    matchConfidence: unverified
+    citations:
+      - title: "Microsoft Build of OpenJDK FAQ"
+        url: "https://learn.microsoft.com/en-us/java/openjdk/faq"
+
+  - id: redhat
+    displayName: "Red Hat build of OpenJDK"
+    vendor: "Red Hat"
+    oracle: false
+    match:
+      implementor: "Red Hat, Inc."
+    matchConfidence: unverified
+    citations:
+      - title: "Red Hat OpenJDK Life Cycle and Support Policy"
+        url: "https://access.redhat.com/articles/1299013"
+
+  - id: liberica
+    displayName: "BellSoft Liberica JDK"
+    vendor: "BellSoft"
+    oracle: false
+    match:
+      implementor: "BellSoft"
+    matchConfidence: unverified
+    citations:
+      - title: "BellSoft Liberica JDK"
+        url: "https://bell-sw.com/libericajdk/"
+
+  - id: sapmachine
+    displayName: "SapMachine"
+    vendor: "SAP"
+    oracle: false
+    match:
+      implementor: "SAP SE"
+    matchConfidence: unverified
+    citations:
+      - title: "SapMachine LICENSE (GPLv2+CPE)"
+        url: "https://github.com/SAP/SapMachine/blob/sapmachine/LICENSE"
+
+  - id: semeru
+    displayName: "IBM Semeru Runtimes"
+    vendor: "IBM"
+    oracle: false
+    match:
+      implementor: "IBM Corporation"
+    matchConfidence: unverified
+    citations:
+      - title: "IBM Semeru Runtimes licensing"
+        url: "https://www.ibm.com/support/pages/node/6451203"
+
+  - id: dragonwell
+    displayName: "Alibaba Dragonwell"
+    vendor: "Alibaba"
+    oracle: false
+    match:
+      implementor: "Alibaba"
+    matchConfidence: unverified
+    citations:
+      - title: "Alibaba Dragonwell (GPLv2+CPE)"
+        url: "https://github.com/dragonwell-project/dragonwell21"
+
+  - id: kona
+    displayName: "Tencent Kona"
+    vendor: "Tencent"
+    oracle: false
+    match:
+      implementor: "Tencent"
+    matchConfidence: unverified
+    citations:
+      - title: "Tencent Kona (GPLv2+CPE)"
+        url: "https://github.com/Tencent/TencentKona-21"

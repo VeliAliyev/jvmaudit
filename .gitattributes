@@ -1,0 +1,5 @@
+# Normalize to LF in the repository and in the working tree, so Spotless and the
+# three-OS CI matrix agree on line endings.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf

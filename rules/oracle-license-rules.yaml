@@ -1,0 +1,400 @@
+# JVMAudit license rules
+#
+# Every rule states one licensing fact, in plain English, with the primary source it came from.
+# Nothing in this file may be changed without also changing its citation.
+#
+# confidence:
+#   verified   - the statement is made, in these words, by one of the cited primary sources
+#                (Oracle's own FAQ, licence text, support roadmap or release notes).
+#   unverified - the statement is a reasonable inference that no cited source makes directly.
+#                JVMAudit prints these differently and tells the user to check for themselves.
+#
+# Rules are evaluated top to bottom and the FIRST match wins, so the specific rules come first
+# and the general ones last. A rule matches when every condition under 'match' holds. A condition
+# that cannot be evaluated - a date condition on an installation whose build date is unknown -
+# does not match, and evaluation falls through to the next rule. That is deliberate: JVMAudit
+# reports UNKNOWN rather than guessing.
+#
+# match keys:
+#   product                 product id from vendors.yaml
+#   oracleProduct           true/false - whether the product is an Oracle product
+#   feature                 exact feature version (8, 11, 17, ...)
+#   featureMin/featureMax   inclusive feature version bounds
+#   versionMin/versionMax   inclusive full version bounds ("8u202", "17.0.13", "21.0.12.1")
+#   releasedOnOrBefore      inclusive upper bound on the build's GA date (ISO-8601)
+#   releasedOnOrAfter       inclusive lower bound on the build's GA date (ISO-8601)
+
+schemaVersion: 1
+rulesVersion: "2026.08.30"
+disclaimer: >-
+  JVMAudit is an inventory tool, not legal advice. License conclusions depend on your contracts
+  with Oracle.
+
+sources:
+  - id: oracle-faq
+    title: "Oracle Java SE Licensing FAQ (updated 16 September 2025)"
+    url: "https://www.oracle.com/java/technologies/javase/jdk-faqs.html"
+  - id: oracle-roadmap
+    title: "Oracle Java SE Support Roadmap"
+    url: "https://www.oracle.com/java/technologies/java-se-support-roadmap.html"
+  - id: nftc
+    title: "Oracle No-Fee Terms and Conditions (NFTC)"
+    url: "https://www.oracle.com/downloads/licenses/no-fee-license.html"
+  - id: otn
+    title: "Oracle Technology Network License Agreement for Oracle Java SE"
+    url: "https://www.oracle.com/downloads/licenses/javase-license1.html"
+  - id: bcl
+    title: "Oracle Binary Code License Agreement for the Java SE Platform Products and JavaFX"
+    url: "https://www.oracle.com/downloads/licenses/binary-code-license.html"
+  - id: gftc
+    title: "GraalVM Free Terms and Conditions (GFTC)"
+    url: "https://www.oracle.com/downloads/licenses/graal-free-license.html"
+  - id: gplv2cpe
+    title: "GNU General Public License v2 with the Classpath Exception"
+    url: "https://openjdk.org/legal/gplv2+ce.html"
+  - id: blog-jdk21
+    title: "Oracle blog: JDK 21 approaches end-of-permissive license"
+    url: "https://blogs.oracle.com/java/post/jdk-21-approaches-end-of-permissive-license"
+  - id: relnotes-21
+    title: "Consolidated JDK 21 Release Notes"
+    url: "https://www.oracle.com/java/technologies/javase/21all-relnotes.html"
+  - id: relnotes-17
+    title: "Consolidated JDK 17 Release Notes"
+    url: "https://www.oracle.com/java/technologies/javase/17all-relnotes.html"
+  - id: relnotes-8
+    title: "Consolidated JDK 8 Release Notes"
+    url: "https://www.oracle.com/java/technologies/javase/8all-relnotes.html"
+
+rules:
+
+  # ---------------------------------------------------------------- GraalVM
+
+  - id: graalvm-ce-gpl
+    match:
+      product: graalvm-ce
+    status: FREE
+    flags: []
+    summary: >-
+      GraalVM Community Edition is open source under GPLv2 with the Classpath Exception, so it
+      carries no Oracle licence cost.
+    citations: [gplv2cpe]
+    confidence: verified
+
+  - id: oracle-graalvm-21-otn-planned
+    match:
+      product: oracle-graalvm
+      feature: 21
+      releasedOnOrAfter: "2026-10-01"
+    status: ORACLE_PAID_LIKELY
+    flags: [FUTURE_ANNOUNCED_CHANGE]
+    summary: >-
+      Oracle announced that GraalVM for JDK 21 updates from the October 2026 Critical Patch Update
+      onwards move to the GraalVM OTN licence, which does not permit free production use.
+    citations: [blog-jdk21]
+    confidence: verified
+
+  - id: oracle-graalvm-gftc
+    match:
+      product: oracle-graalvm
+    status: ORACLE_FREE_GFTC
+    flags: [CONDITIONS_APPLY]
+    summary: >-
+      Oracle GraalVM is free under the GraalVM Free Terms and Conditions for development, testing,
+      prototyping, personal use and your own internal business operations, but redistribution for a
+      fee is not permitted - check the conditions against how you actually use it.
+    citations: [gftc]
+    confidence: verified
+
+  # ---------------------------------------------------------------- Oracle OpenJDK
+
+  - id: oracle-openjdk-gpl
+    match:
+      product: oracle-openjdk
+    status: FREE
+    flags: []
+    summary: >-
+      Oracle's OpenJDK builds from jdk.java.net are open source under GPLv2 with the Classpath
+      Exception and carry no licence cost, even though the vendor string says Oracle.
+    citations: [oracle-faq, gplv2cpe]
+    confidence: verified
+
+  # ---------------------------------------------------------------- Oracle JDK 8 and earlier
+
+  - id: oracle-jdk-8-bcl
+    match:
+      product: oracle-jdk
+      feature: 8
+      versionMax: "8u202"
+    status: LEGACY_BCL
+    effectiveTo: "2019-04-15"
+    flags: [REVIEW_REQUIRED]
+    summary: >-
+      Oracle JDK/JRE 8u202 and earlier are under the old Binary Code Licence, which allows free
+      internal use on general purpose desktops and servers but excludes the Commercial Features and
+      excludes embedded or dedicated-function systems - review how this installation is used.
+    citations: [bcl, oracle-roadmap, relnotes-8]
+    confidence: verified
+
+  - id: oracle-jdk-8-otn
+    match:
+      product: oracle-jdk
+      feature: 8
+      versionMin: "8u211"
+    status: ORACLE_PAID_LIKELY
+    effectiveFrom: "2019-04-16"
+    flags: []
+    summary: >-
+      Oracle JDK/JRE 8u211 (16 April 2019) and later are under the OTN licence, which is free only
+      for personal use, development, testing, prototyping and demonstration - commercial or
+      production use needs a Java SE Universal Subscription.
+    citations: [oracle-faq, oracle-roadmap, relnotes-8]
+    confidence: verified
+
+  - id: oracle-jdk-9-10-bcl
+    match:
+      product: oracle-jdk
+      featureMin: 9
+      featureMax: 10
+    status: LEGACY_BCL
+    flags: [REVIEW_REQUIRED, UNVERIFIED_RULE]
+    summary: >-
+      Oracle JDK 9 and 10 reached end of life before the April 2019 licence change, so their final
+      builds are under the old Binary Code Licence - Oracle publishes no licensing statement for
+      these versions today, so confirm against the LICENSE file inside the installation.
+    citations: [bcl, oracle-faq]
+    confidence: unverified
+
+  # ---------------------------------------------------------------- Oracle JDK 11 to 16
+
+  - id: oracle-jdk-11-otn
+    match:
+      product: oracle-jdk
+      feature: 11
+    status: ORACLE_PAID_LIKELY
+    flags: []
+    summary: >-
+      All Oracle JDK 11 releases are under the OTN licence, which is free only for personal use,
+      development, testing, prototyping and demonstration - commercial or production use needs a
+      Java SE Universal Subscription.
+    citations: [oracle-faq, oracle-roadmap]
+    confidence: verified
+
+  - id: oracle-jdk-12-16-otn
+    match:
+      product: oracle-jdk
+      featureMin: 12
+      featureMax: 16
+    status: ORACLE_PAID_LIKELY
+    flags: [UNVERIFIED_RULE]
+    summary: >-
+      Oracle JDK 12 to 16 shipped between the April 2019 move to the OTN licence and the September
+      2021 introduction of the NFTC, so OTN is the expected licence - Oracle's current FAQ does not
+      list these versions, so confirm against the LICENSE file inside the installation.
+    citations: [oracle-faq]
+    confidence: unverified
+
+  # ---------------------------------------------------------------- Oracle JDK 17
+
+  - id: oracle-jdk-17-nftc-by-date
+    match:
+      product: oracle-jdk
+      feature: 17
+      releasedOnOrBefore: "2024-09-30"
+    status: ORACLE_FREE_NFTC
+    effectiveTo: "2024-09-30"
+    flags: [NO_FURTHER_FREE_UPDATES]
+    summary: >-
+      Oracle JDK 17 releases up to and including 17.0.12 (September 2024) are under the No-Fee Terms
+      and Conditions licence and are free for all uses including production, but this line receives
+      no further free updates - 17.0.13 and later are OTN licensed.
+    citations: [oracle-faq, oracle-roadmap, nftc]
+    confidence: verified
+
+  - id: oracle-jdk-17-otn-by-date
+    match:
+      product: oracle-jdk
+      feature: 17
+      releasedOnOrAfter: "2024-10-01"
+    status: ORACLE_PAID_LIKELY
+    effectiveFrom: "2024-10-15"
+    flags: []
+    summary: >-
+      Oracle JDK 17 updates released from 15 October 2024 (17.0.13) onwards are under the OTN
+      licence, which is free only for personal use, development, testing, prototyping and
+      demonstration - commercial or production use needs a Java SE Universal Subscription.
+    citations: [oracle-faq, oracle-roadmap, relnotes-17]
+    confidence: verified
+
+  - id: oracle-jdk-17-nftc-by-version
+    match:
+      product: oracle-jdk
+      feature: 17
+      versionMax: "17.0.12"
+    status: ORACLE_FREE_NFTC
+    flags: [NO_FURTHER_FREE_UPDATES]
+    summary: >-
+      Oracle JDK 17.0.12 and earlier are under the No-Fee Terms and Conditions licence and are free
+      for all uses including production, but this line receives no further free updates - 17.0.13
+      and later are OTN licensed.
+    citations: [oracle-faq, oracle-roadmap]
+    confidence: verified
+
+  - id: oracle-jdk-17-otn-by-version
+    match:
+      product: oracle-jdk
+      feature: 17
+      versionMin: "17.0.13"
+    status: ORACLE_PAID_LIKELY
+    flags: []
+    summary: >-
+      Oracle JDK 17.0.13 and later are under the OTN licence, which is free only for personal use,
+      development, testing, prototyping and demonstration - commercial or production use needs a
+      Java SE Universal Subscription.
+    citations: [oracle-faq, oracle-roadmap]
+    confidence: verified
+
+  # ---------------------------------------------------------------- Oracle JDK 21
+
+  - id: oracle-jdk-21-nftc-by-date
+    match:
+      product: oracle-jdk
+      feature: 21
+      releasedOnOrBefore: "2026-09-30"
+    status: ORACLE_FREE_NFTC
+    effectiveTo: "2026-09-30"
+    flags: [NFTC_WINDOW_CLOSING]
+    summary: >-
+      Oracle JDK 21 updates through September 2026 are under the No-Fee Terms and Conditions licence
+      and are free for all uses including production, but updates from the October 2026 Critical
+      Patch Update onwards move to the OTN licence - staying on this build keeps the free licence
+      and loses future security updates.
+    citations: [oracle-faq, blog-jdk21, oracle-roadmap, relnotes-21, nftc]
+    confidence: verified
+
+  - id: oracle-jdk-21-otn-by-date
+    match:
+      product: oracle-jdk
+      feature: 21
+      releasedOnOrAfter: "2026-10-01"
+    status: ORACLE_PAID_LIKELY
+    effectiveFrom: "2026-10-01"
+    flags: [FUTURE_ANNOUNCED_CHANGE]
+    summary: >-
+      Oracle JDK 21 updates released after September 2026 are under the OTN licence, which is free
+      only for personal use, development, testing, prototyping and demonstration - commercial or
+      production use needs a Java SE Universal Subscription.
+    citations: [oracle-faq, blog-jdk21, oracle-roadmap, relnotes-21]
+    confidence: verified
+
+  - id: oracle-jdk-21-nftc-by-version
+    match:
+      product: oracle-jdk
+      feature: 21
+      versionMax: "21.0.12.1"
+    status: ORACLE_FREE_NFTC
+    flags: [NFTC_WINDOW_CLOSING, UNVERIFIED_RULE]
+    summary: >-
+      Oracle JDK 21.0.12.1 (August 2026) is the last Oracle JDK 21 build released inside the No-Fee
+      Terms and Conditions window, so this build is free for all uses - Oracle states the boundary
+      as a date rather than a version number, so this version mapping is JVMAudit's inference.
+    citations: [oracle-faq, blog-jdk21, relnotes-21]
+    confidence: unverified
+
+  - id: oracle-jdk-21-otn-by-version
+    match:
+      product: oracle-jdk
+      feature: 21
+      versionMin: "21.0.13"
+    status: ORACLE_PAID_LIKELY
+    flags: [FUTURE_ANNOUNCED_CHANGE, UNVERIFIED_RULE]
+    summary: >-
+      Oracle JDK 21.0.13 is expected to be the October 2026 Critical Patch Update, the first Oracle
+      JDK 21 release under the OTN licence - Oracle states the boundary as a date rather than a
+      version number, so this version mapping is JVMAudit's inference.
+    citations: [oracle-faq, blog-jdk21, relnotes-21]
+    confidence: unverified
+
+  - id: oracle-jdk-21-undetermined
+    match:
+      product: oracle-jdk
+      feature: 21
+    status: UNKNOWN
+    flags: [DATE_UNKNOWN]
+    summary: >-
+      This is an Oracle JDK 21 build, but its release date could not be determined, and the JDK 21
+      licence depends on whether the build was released before or after September 2026 - check the
+      build's release notes.
+    citations: [oracle-faq, blog-jdk21]
+    confidence: verified
+
+  # ---------------------------------------------------------------- Oracle JDK 25
+
+  - id: oracle-jdk-25-nftc
+    match:
+      product: oracle-jdk
+      feature: 25
+      releasedOnOrBefore: "2028-09-30"
+    status: ORACLE_FREE_NFTC
+    effectiveTo: "2028-09-30"
+    flags: []
+    summary: >-
+      Oracle JDK 25 updates through September 2028 are under the No-Fee Terms and Conditions licence
+      and are free for all uses including production - Oracle plans to move later JDK 25 updates to
+      the OTN licence one year after the next LTS release.
+    citations: [oracle-faq, blog-jdk21, nftc]
+    confidence: verified
+
+  - id: oracle-jdk-25-otn-planned
+    match:
+      product: oracle-jdk
+      feature: 25
+      releasedOnOrAfter: "2028-10-01"
+    status: ORACLE_PAID_LIKELY
+    effectiveFrom: "2028-10-01"
+    flags: [FUTURE_ANNOUNCED_CHANGE]
+    summary: >-
+      Oracle plans to license Oracle JDK 25 updates released after September 2028 under the OTN
+      licence, which is free only for personal use, development, testing, prototyping and
+      demonstration.
+    citations: [oracle-faq, blog-jdk21]
+    confidence: verified
+
+  - id: oracle-jdk-25-undetermined
+    match:
+      product: oracle-jdk
+      feature: 25
+    status: UNKNOWN
+    flags: [DATE_UNKNOWN]
+    summary: >-
+      This is an Oracle JDK 25 build, but its release date could not be determined, and the JDK 25
+      licence depends on whether the build was released before or after September 2028.
+    citations: [oracle-faq]
+    confidence: verified
+
+  # ---------------------------------------------------------------- Oracle JDK 18+ current releases
+
+  - id: oracle-jdk-nftc-current
+    match:
+      product: oracle-jdk
+      featureMin: 18
+    status: ORACLE_FREE_NFTC
+    flags: []
+    summary: >-
+      Oracle JDK 18 and later ship under the No-Fee Terms and Conditions licence and are free for
+      all uses including production - for a long term support release the free window closes one
+      year after the following LTS release.
+    citations: [oracle-faq, nftc]
+    confidence: verified
+
+  # ---------------------------------------------------------------- Everyone else
+
+  - id: third-party-open-source
+    match:
+      oracleProduct: false
+    status: FREE
+    flags: []
+    summary: >-
+      This is a non-Oracle OpenJDK distribution under an open source licence, so it carries no
+      Oracle licence cost.
+    citations: [gplv2cpe]
+    confidence: verified
